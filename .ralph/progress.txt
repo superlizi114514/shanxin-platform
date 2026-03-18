@@ -1,6 +1,13 @@
 # Ralph 运行进度 - 山东信息职业技术学院总站门户平台
 
-## 当前阶段：M1 - 总站框架 + 统一登录认证（基本完成）
+## Codebase Patterns
+- Student ID format: 10 digits (YYYYXXYYYY) where YYYY=year, XX=school code, XXXX=student number
+- Alternative student ID: 6-12 alphanumeric characters for continuing education
+- Use `sql<number>` template for Prisma queries
+- Always use `IF NOT EXISTS` for migrations
+- Export types from auth.ts for UI components
+
+## 当前阶段：M2 - 二手平台分站（完成）
 
 ## 任务执行记录
 
@@ -11,11 +18,38 @@
 - [x] US-004: 创建总站首页布局 - 完成
 - [x] US-005: 添加分站导航卡片 - 完成
 - [x] US-006: 创建登录守卫中间件 - 完成
+- [x] US-007: 添加注册流程和学生 ID 验证 - 完成于 2026-03-18
+- [x] M2-001: 商品列表页面（带筛选） - 完成于 2026-03-18
+- [x] M2-002: 商品创建表单 - 完成于 2026-03-18
+- [x] M2-003: 商品详情页面 - 完成于 2026-03-18
+- [x] M2-004: 商品图片上传 - 完成于 2026-03-18
+- [x] M2-005: 商品 CRUD 操作 - 完成于 2026-03-18
+- [x] M2-006: 商品 API (GET/POST/PUT/DELETE) - 完成于 2026-03-18
 
 ### 待执行任务
-- US-007: 添加注册流程和学生 ID 验证
+- (M1, M2 阶段任务全部完成)
+- M3: 个人课表 x 地图
 
 ## 历史记录
+
+### 2026-03-18 - US-007
+- 创建学生 ID 验证 API 端点 (/api/auth/verify-student)
+- 更新注册页面，添加学号验证按钮和状态显示
+- 添加学校、专业、班级字段用于学生信息
+- 添加 StudentVerification 模型到 Prisma schema
+- 更新注册 API 以存储学生验证记录
+- 修复 profile API 路由 (schoolRel 关系名称)
+
+**学生 ID 验证功能：**
+- 验证 10 位数字格式 (YYYYXXYYYY)，包含入学年份和学院代码
+- 支持成人教育学生的字母数字格式 (6-12 位)
+- 检查重复注册
+- 自动验证有效学号并创建验证记录
+
+**Learnings for future iterations:**
+- Prisma 关系字段需要双向定义，One-to-one 关系需要在某一方使用 @unique
+- User 模型的 schoolRel 关系名称要与 schema 中一致
+- 使用 git add -A 前先用 git status 检查哪些文件需要提交
 
 ### 2026-03-18
 - 执行数据库迁移，添加学生信息字段（studentId, school, major, class, phone）到 User 表

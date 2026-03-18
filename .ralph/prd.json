@@ -1,6 +1,6 @@
 {
   "project": "山东信息职业技术学院总站门户平台",
-  "branchName": "ralph/shanxin-portal-m1",
+  "branchName": "master",
   "description": "M1 阶段 - 总站框架 + 统一登录认证",
   "userStories": [
     {
@@ -14,7 +14,7 @@
         "Typecheck passes"
       ],
       "priority": 1,
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
@@ -29,7 +29,7 @@
         "Typecheck passes"
       ],
       "priority": 2,
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
@@ -45,7 +45,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 3,
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
@@ -61,7 +61,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 4,
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
@@ -77,7 +77,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 5,
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
@@ -91,7 +91,24 @@
         "Typecheck passes"
       ],
       "priority": 6,
-      "passes": false,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-007",
+      "title": "添加注册流程和学生 ID 验证",
+      "description": "作为用户，我希望注册时验证学生 ID 以确保是本校学生。",
+      "acceptanceCriteria": [
+        "创建学生 ID 验证 API 端点 (/api/auth/verify-student)",
+        "验证 10 位数字格式 (YYYYXXYYYY) 或 6-12 位字母数字格式",
+        "检查学号是否已被注册",
+        "注册页面添加学号验证按钮和状态显示",
+        "添加学校、专业、班级字段",
+        "创建 StudentVerification 模型存储验证记录",
+        "Typecheck passes"
+      ],
+      "priority": 7,
+      "passes": true,
       "notes": ""
     }
   ]
