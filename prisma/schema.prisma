@@ -1,0 +1,300 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// User (用户)
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified DateTime?
+  name          String?
+  avatar        String?
+  password      String?
+  role          String    @default("user") // user, admin
+  schoolId      String?
+
+  // Student information
+  studentId     String?   @unique // 学号
+  school        String?   // 学校名称
+  major         String?   // 专业
+  class         String?   // 班级
+  phone         String?   // 手机号
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  schoolRel     School? @relation(fields: [schoolId], references: [id])
+  products      Product[]
+  reviews       Review[]
+  collections   Collection[]
+  buyerOrders   Order[] @relation("buyerOrders")
+  sellerOrders  Order[] @relation("sellerOrders")
+  receivedMessages Message[] @relation("receivedMessages")
+  sentMessages  Message[] @relation("sentMessages")
+  merchantReviews MerchantReview[]
+  studentVerification StudentVerification?
+}
+
+// School (学校)
+model School {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  code      String   @unique
+  logo      String?
+  address   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users     User[]
+  products  Product[]
+  merchants Merchant[]
+  verifications StudentVerification[]
+}
+
+// Merchant (商家)
+model Merchant {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  logo        String?
+  schoolId    String
+  rating      Float    @default(0)
+  reviewCount Int      @default(0)
+  address     String?
+  phone       String?
+  verified    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  school      School           @relation(fields: [schoolId], references: [id])
+  reviews     MerchantReview[]
+  categories  MerchantCategory[] @relation("merchantCategories")
+  images      MerchantImage[]
+}
+
+// MerchantImage (商家图片)
+model MerchantImage {
+  id         String   @id @default(cuid())
+  url        String
+  merchantId String
+  createdAt  DateTime @default(now())
+
+  merchant   Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+}
+
+// MerchantCategory (商家分类)
+model MerchantCategory {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  icon      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  merchants Merchant[] @relation("merchantCategories")
+}
+
+// Product (商品)
+model Product {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  price       Float
+  category    String
+  status      String   @default("available") // available, sold, reserved
+  sellerId    String
+  schoolId    String?
+  views       Int      @default(0)
+  likes       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  seller      School?   @relation(fields: [schoolId], references: [id])
+  owner       User     @relation(fields: [sellerId], references: [id])
+  reviews     Review[]
+  collections Collection[]
+  orderItems  OrderItem[]
+  images      ProductImage[]
+}
+
+// ProductImage (商品图片)
+model ProductImage {
+  id        String   @id @default(cuid())
+  url       String
+  productId String
+  createdAt DateTime @default(now())
+
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+// Review (商品评价)
+model Review {
+  id        String   @id @default(cuid())
+  content   String
+  rating    Int
+  userId    String
+  productId String
+  helpful   Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+  images    ReviewImage[]
+}
+
+// ReviewImage (评价图片)
+model ReviewImage {
+  id        String   @id @default(cuid())
+  url       String
+  reviewId  String
+  createdAt DateTime @default(now())
+
+  review    Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+}
+
+// MerchantReview (商家评价)
+model MerchantReview {
+  id         String   @id @default(cuid())
+  content    String
+  rating     Int
+  userId     String?
+  merchantId String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  merchant   Merchant @relation(fields: [merchantId], references: [id])
+  user       User?    @relation(fields: [userId], references: [id])
+  images     MerchantReviewImage[]
+}
+
+// MerchantReviewImage (商家评价图片)
+model MerchantReviewImage {
+  id             String   @id @default(cuid())
+  url            String
+  merchantReviewId String
+  createdAt      DateTime @default(now())
+
+  merchantReview MerchantReview @relation(fields: [merchantReviewId], references: [id], onDelete: Cascade)
+}
+
+// Collection (收藏)
+model Collection {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+
+  @@unique([userId, productId])
+}
+
+// Order (订单)
+model Order {
+  id          String   @id @default(cuid())
+  orderNo     String   @unique
+  buyerId     String
+  sellerId    String
+  totalAmount Float
+  status      String   @default("pending") // pending, paid, completed, cancelled
+  remark      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  buyer       User     @relation(fields: [buyerId], references: [id], onDelete: Cascade, name: "buyerOrders")
+  seller      User     @relation(fields: [sellerId], references: [id], onDelete: Cascade, name: "sellerOrders")
+  items       OrderItem[]
+}
+
+// OrderItem (订单项)
+model OrderItem {
+  id        String   @id @default(cuid())
+  orderId   String
+  productId String
+  quantity  Int      @default(1)
+  price     Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  order     Order    @relation(fields: [orderId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+}
+
+// Message (消息)
+model Message {
+  id        String   @id @default(cuid())
+  content   String
+  senderId  String
+  receiverId String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade, name: "sentMessages")
+  receiver  User     @relation(fields: [receiverId], references: [id], onDelete: Cascade, name: "receivedMessages")
+}
+
+// Report (举报)
+model Report {
+  id          String   @id @default(cuid())
+  type        String   // product, review, user, message
+  targetId    String
+  reason      String
+  status      String   @default("pending") // pending, processing, resolved, rejected
+  reporterId  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// SystemSettings (系统设置)
+model SystemSettings {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// VerificationToken (邮箱验证令牌)
+model VerificationToken {
+  id         String   @id @default(cuid())
+  identifier String   // Email or other identifier
+  token      String   @unique
+  expires    DateTime
+  createdAt  DateTime @default(now())
+}
+
+// StudentVerification (学生认证)
+model StudentVerification {
+  id         String   @id @default(cuid())
+  studentId  String   @unique // 学号
+  schoolId   String   // 学校 ID
+  major      String   // 专业
+  class      String   // 班级
+  verified   Boolean  @default(false) // 是否已验证
+  userId     String?  @unique // 关联的用户 ID（验证后绑定）
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  school     School?  @relation(fields: [schoolId], references: [id])
+  user       User?    @relation(fields: [userId], references: [id])
+}
+
+// PasswordResetToken (密码重置令牌)
+model PasswordResetToken {
+  id         String   @id @default(cuid())
+  email      String   @unique
+  token      String   @unique
+  expires    DateTime
+  createdAt  DateTime @default(now())
+}

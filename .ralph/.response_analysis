@@ -1,0 +1,22 @@
+{
+  "loop_number": 1,
+  "timestamp": "2026-03-18T03:12:51+00:00",
+  "output_file": ".ralph/logs/claude_output_2026-03-18_10-57-43.log",
+  "output_format": "text",
+  "analysis": {
+    "has_completion_signal": false,
+    "is_test_only": false,
+    "is_stuck": false,
+    "has_progress": true,
+    "files_modified": 7,
+    "confidence_score": 20,
+    "exit_signal": false,
+    "work_summary": "Output analyzed, no explicit summary found",
+    "output_length": 0,
+    "has_permission_denials": false,
+    "permission_denial_count": 0,
+    "denied_commands": [],
+    "asking_questions": false,
+    "question_count": 0
+  }
+}

@@ -1,0 +1,79 @@
+import { Resend } from "resend";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+const APP_URL = process.env.NEXTAUTH_URL || "http://localhost:3000";
+
+export async function sendVerificationEmail(email: string, verificationToken: string) {
+  const verificationUrl = `${APP_URL}/verify-email?token=${verificationToken}`;
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: "山信二手平台 <noreply@yourdomain.com>",
+      to: [email],
+      subject: "验证您的邮箱 - 山信二手平台",
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h1 style="color: #2563eb;">欢迎加入山信二手平台!</h1>
+          <p>感谢您注册山信二手平台。请点击下方按钮验证您的邮箱地址：</p>
+          <a href="${verificationUrl}"
+             style="display: inline-block; background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 16px 0;">
+            验证邮箱
+          </a>
+          <p>或者复制以下链接到浏览器：</p>
+          <p style="color: #6b7280; word-break: break-all;">${verificationUrl}</p>
+          <p style="color: #6b7280; font-size: 14px;">此链接将在 24 小时后过期。</p>
+          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;" />
+          <p style="color: #9ca3af; font-size: 12px;">如果不是您本人注册，请忽略此邮件。</p>
+        </div>
+      `,
+    });
+
+    if (error) {
+      console.error("Failed to send verification email:", error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, data };
+  } catch (err) {
+    console.error("Error sending email:", err);
+    return { success: false, error: "Failed to send email" };
+  }
+}
+
+export async function sendPasswordResetEmail(email: string, resetToken: string) {
+  const resetUrl = `${APP_URL}/reset-password?token=${resetToken}`;
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: "山信二手平台 <noreply@yourdomain.com>",
+      to: [email],
+      subject: "重置密码 - 山信二手平台",
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h1 style="color: #2563eb;">重置您的密码</h1>
+          <p>您请求重置密码。请点击下方按钮设置新密码：</p>
+          <a href="${resetUrl}"
+             style="display: inline-block; background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 16px 0;">
+            重置密码
+          </a>
+          <p>或者复制以下链接到浏览器：</p>
+          <p style="color: #6b7280; word-break: break-all;">${resetUrl}</p>
+          <p style="color: #6b7280; font-size: 14px;">此链接将在 1 小时后过期。</p>
+          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;" />
+          <p style="color: #9ca3af; font-size: 12px;">如果您没有请求重置密码，请忽略此邮件。</p>
+        </div>
+      `,
+    });
+
+    if (error) {
+      console.error("Failed to send reset email:", error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, data };
+  } catch (err) {
+    console.error("Error sending email:", err);
+    return { success: false, error: "Failed to send email" };
+  }
+}
