@@ -89,13 +89,13 @@ export function parseStandardSchedule(
     // 星期几解析（简化处理，默认星期一）
     let dayOfWeek = 1;
     const dayMap: Record<string, number> = {
-      星期一：1,
-      星期二：2,
-      星期三：3,
-      星期四：4,
-      星期五：5,
-      星期六：6,
-      星期日：7,
+      "星期一": 1,
+      "星期二": 2,
+      "星期三": 3,
+      "星期四": 4,
+      "星期五": 5,
+      "星期六": 6,
+      "星期日": 7,
     };
 
     for (const [dayText, dayNum] of Object.entries(dayMap)) {
@@ -186,13 +186,13 @@ export function parseShanxinSchedule(text: string, userId: string): ParseResult 
     // 星期几解析
     let dayOfWeek = 1;
     const dayMap: Record<string, number> = {
-      星期一：1,
-      星期二：2,
-      星期三：3,
-      星期四：4,
-      星期五：5,
-      星期六：6,
-      星期日：7,
+      "星期一": 1,
+      "星期二": 2,
+      "星期三": 3,
+      "星期四": 4,
+      "星期五": 5,
+      "星期六": 6,
+      "星期日": 7,
     };
 
     for (const [dayText, dayNum] of Object.entries(dayMap)) {
