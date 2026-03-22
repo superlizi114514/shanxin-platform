@@ -11,6 +11,8 @@ export interface CourseInput {
   dayOfWeek: number;
   startPeriod: number;
   endPeriod: number;
+  startTime?: string;
+  endTime?: string;
   weekRange?: string;
   weekStart?: number;
   weekEnd?: number;
@@ -19,6 +21,7 @@ export interface CourseInput {
   note?: string;
   color?: string;
   customData?: any;
+  userId?: string;
 }
 
 export interface ParseResult {
