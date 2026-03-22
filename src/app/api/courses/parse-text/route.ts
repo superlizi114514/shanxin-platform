@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     // 解析课程表
     const result = parseScheduleText(textData, userId);
 
-    if (result.courses.length === 0) {
+    if (!result || result.courses.length === 0) {
       return NextResponse.json(
         { error: "未解析到有效的课程数据" },
         { status: 400 }
