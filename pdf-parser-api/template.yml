@@ -1,0 +1,24 @@
+ROSTemplateFormatVersion: '2015-09-01'
+Transform: 'Aliyun::Serverless-2018-04-03'
+Resources:
+  pdf-parser-service:
+    Type: 'Aliyun::Serverless::Service'
+    Properties:
+      Description: PDF 课程表解析服务
+    pdf-parser-function:
+      Type: 'Aliyun::Serverless::Function'
+      Properties:
+        Handler: index.handler
+        Runtime: custom
+        CodeUri: ./
+        MemorySize: 512
+        Timeout: 30
+        CustomContainerConfig:
+          Image: registry.cn-hangzhou.cr.aliyuncs.com/fc-custom/python3-pdfplumber:latest
+  http-trigger:
+    Type: 'Aliyun::Serverless::Trigger'
+    Properties:
+      Type: HTTP
+      Config:
+        AuthType: ANONYMOUS
+        Methods: ['POST', 'GET', 'OPTIONS']

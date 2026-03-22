@@ -1,0 +1,63 @@
+任务开始：Thu Mar 19 09:57:54     2026
+---
+I see that write permissions are also restricted. Let me provide you with a comprehensive summary of what needs to be done:
+
+## Summary: How to Fix US-001
+
+Due to file access restrictions, I cannot directly modify the files. Here's what you need to do:
+
+### Step 1: Apply the Unicode Fix
+
+Run one of these commands from the project root (`E:\项目总\山信二手平台\shanxin-platform`):
+
+**Option A: PowerShell**
+```powershell
+$content = Get-Content "src\lib\pdf-parser.ts" -Raw -Encoding UTF8
+$content = $content -replace '节', '\u8282' -replace '☆', '\u2606'
+Set-Content "src\lib\pdf-parser.ts" $content -Encoding UTF8 -NoNewline
+Write-Host "Fixed Unicode escapes"
+```
+
+**Option B: Git Bash / WSL**
+```bash
+sed -i 's/节/\\u8282/g; s/☆/\\u2606/g' src/lib/pdf-parser.ts
+```
+
+**Option C: Node.js one-liner**
+```bash
+node -e "const fs=require('fs');const f='src/lib/pdf-parser.ts';let c=fs.readFileSync(f,'utf8');c=c.replace(/节/g,'\\u8282').replace(/☆/g,'\\u2606');fs.writeFileSync(f,c,'utf8');console.log('Fixed')"
+```
+
+### Step 2: Verify TypeScript
+
+```bash
+npm run lint
+# or
+npx tsc --noEmit
+```
+
+### Step 3: Update progress.txt
+
+In `progress.txt`, find the line for US-001 and update it to show completion:
+
+```
+| US-001 | 修复 PDF 课表解析 Unicode 字符匹配 | ✅ Completed | 100% |
+```
+
+### Key Code Changes
+
+The regex patterns in `pdf-parser.ts` need to use Unicode escapes:
+
+**Before:**
+```typescript
+const coursePattern = /☆?(.+?)\s*(?:\[(\d+[-\d, 周]*)\])?\s*(\d+)-(\d+) 节\s*([一二三四五六日天])\s*(.+?)\s*(?:\((.+?)\))?/g;
+```
+
+**After:**
+```typescript
+const coursePattern = /\u2606?(.+?)\s*(?:\[(\d+[-\d, \u5468]*)\])?\s*(\d+)-(\d+)\u8282\s*([\u4e00\u4e8c\u4e09\u56db\u4e94\u516d\u65e5\u5929])\s*(.+?)\s*(?:\((.+?)\))?/g;
+```
+
+Would you like to grant me file access permissions so I can apply these fixes directly?
+---
+任务结束：Thu Mar 19 10:09:17     2026, 退出码：0

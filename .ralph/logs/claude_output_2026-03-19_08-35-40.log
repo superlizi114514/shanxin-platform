@@ -1,0 +1,13 @@
+任务开始：Thu Mar 19 08:35:40     2026
+---
+I need to read the PDF parser file to fix the Unicode character matching issue. Could you please grant read permission for the files I mentioned:
+
+1. `E:\项目总\山信二手平台\shanxin-platform\src\lib\pdf-parser.ts` - to fix the Unicode issue
+2. `E:\项目总\山信二手平台\shanxin-platform\progress.txt` - to update progress
+
+This will allow me to:
+1. Fix the Unicode escaping for matching the '节' character
+2. Ensure the parsing logic correctly identifies course names, periods, weeks, classrooms and teachers
+3. Update the progress tracking
+---
+任务结束：Thu Mar 19 08:36:05     2026, 退出码：0

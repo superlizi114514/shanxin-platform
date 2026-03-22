@@ -23,7 +23,12 @@ export async function GET(request: NextRequest) {
 
     const skip = (page - 1) * limit;
 
-    const where: any = {};
+    const where: {
+      buyerId?: string;
+      sellerId?: string;
+      status?: string;
+      OR?: Array<{ buyerId: string } | { sellerId: string }>;
+    } = {};
 
     // 根据角色筛选订单
     if (role === "buyer") {
@@ -113,7 +118,12 @@ export async function POST(request: NextRequest) {
     }
 
     // 验证商品并计算总价
-    const productIds = items.map((item: any) => item.productId);
+    interface OrderItem {
+      productId: string;
+      quantity?: number;
+    }
+
+    const productIds = items.map((item: OrderItem) => item.productId);
     const products = await prisma.product.findMany({
       where: {
         id: { in: productIds },
@@ -149,7 +159,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 计算总价
-    const totalAmount = items.reduce((sum: number, item: any) => {
+    const totalAmount = items.reduce((sum: number, item: OrderItem) => {
       const product = products.find((p) => p.id === item.productId);
       return sum + product!.price * (item.quantity || 1);
     }, 0);
@@ -166,7 +176,7 @@ export async function POST(request: NextRequest) {
         totalAmount,
         remark: remark || null,
         items: {
-          create: items.map((item: any) => {
+          create: items.map((item: OrderItem) => {
             const product = products.find((p) => p.id === item.productId);
             return {
               productId: item.productId,

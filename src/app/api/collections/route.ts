@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { productId } = body;
+    const { productId, note } = body;
 
     if (!productId) {
       return NextResponse.json(
@@ -120,25 +120,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 创建收藏
-    const collection = await prisma.collection.create({
-      data: {
-        userId: session.user.id,
-        productId,
-      },
-      include: {
-        product: {
-          include: {
-            owner: {
-              select: { id: true, name: true, email: true, avatar: true },
-            },
-            images: {
-              select: { id: true, url: true },
+    // 创建收藏，同时增加商品的收藏数量
+    const [collection] = await prisma.$transaction([
+      prisma.collection.create({
+        data: {
+          userId: session.user.id,
+          productId,
+          note: note || null,
+        },
+        include: {
+          product: {
+            include: {
+              owner: {
+                select: { id: true, name: true, email: true, avatar: true },
+              },
+              images: {
+                select: { id: true, url: true },
+              },
             },
           },
         },
-      },
-    });
+      }),
+      prisma.product.update({
+        where: { id: productId },
+        data: {
+          collectionCount: { increment: 1 },
+        },
+      }),
+    ]);
 
     return NextResponse.json(collection, { status: 201 });
   } catch (error) {

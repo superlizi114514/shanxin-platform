@@ -1,0 +1,34 @@
+任务开始：Thu Mar 19 08:39:50     2026
+---
+I see there's a permission dialog. I'll wait for your response.
+
+In the meantime, let me explain what needs to be done based on the task description:
+
+## US-001 - Fix PDF Course Schedule Parsing Unicode Character Match
+
+**The Issue:**
+The PDF parser in `src/lib/pdf-parser.ts` is using the literal Chinese character `节` in a regex pattern, which can cause Unicode matching issues.
+
+**The Fix:**
+Replace the literal character `节` with its Unicode escape sequence `\u8282` in the regex pattern.
+
+**Acceptance Criteria:**
+1. Use Unicode escape `\u8282` to match the character '节'
+2. Correctly parse course names (with ☆ marker)
+3. Extract period info (X-Y 节 format)
+4. Extract week info
+5. Extract classroom and teacher info
+6. Parse at least 29 courses
+7. TypeScript typecheck passes
+
+**To fix this, I need to:**
+1. Read `src/lib/pdf-parser.ts`
+2. Find the regex pattern that uses `节` 
+3. Replace it with `\u8282`
+4. Verify the parsing logic is correct
+5. Run TypeScript check
+6. Update progress.txt
+
+Please grant me access to the main project directory so I can make these changes.
+---
+任务结束：Thu Mar 19 08:40:45     2026, 退出码：0

@@ -1,0 +1,30 @@
+任务开始：Thu Mar 19 09:20:17     2026
+---
+The command requires your approval. Since I'm unable to directly access the file due to security restrictions, let me provide you with the exact fix to apply:
+
+## US-001 Fix: PDF Parser Unicode Character Matching
+
+To fix the Unicode character matching issue in `pdf-parser.ts`, you need to replace Chinese characters with their Unicode escape sequences:
+
+### Characters to Replace:
+| Character | Unicode Escape | Description |
+|-----------|----------------|-------------|
+| 节 | `\u8282` | Session/period marker |
+| ☆ | `\u2606` | Star marker for course names |
+| 周 | `\u5468` | Week marker |
+
+### Approved Fix Command:
+Please approve this Bash command to apply the fix automatically:
+
+```bash
+node -e "const fs=require('fs');let c=fs.readFileSync('../src/lib/pdf-parser.ts','utf8');c=c.replace(/节/g,'\\u8282').replace(/☆/g,'\\u2606').replace(/周/g,'\\u5468');fs.writeFileSync('../src/lib/pdf-parser.ts',c,'utf8');console.log('Fixed!')"
+```
+
+Or manually edit `src/lib/pdf-parser.ts` and:
+1. Replace all occurrences of `'节'` with `'\u8282'` in regex patterns
+2. Replace all occurrences of `'☆'` with `'\u2606'` in regex patterns  
+3. Replace all occurrences of `'周'` with `'\u5468'` in the `parseWeeks` function
+
+Would you like to approve the Bash command to apply this fix automatically?
+---
+任务结束：Thu Mar 19 09:26:27     2026, 退出码：0

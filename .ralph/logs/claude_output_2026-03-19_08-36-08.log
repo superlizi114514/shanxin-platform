@@ -1,0 +1,19 @@
+任务开始：Thu Mar 19 08:36:08     2026
+---
+I need your help to proceed. The system is blocking access to files outside the `.ralph` directory.
+
+**To fix the PDF parser Unicode issue, please approve the following command:**
+
+```bash
+node -e "const fs=require('fs');let c=fs.readFileSync('../src/lib/pdf-parser.ts','utf8');c=c.replace(/节/g,'\\u8282').replace(/☆/g,'\\u2606');fs.writeFileSync('../src/lib/pdf-parser.ts',c,'utf8');console.log('Fixed Unicode escapes in pdf-parser.ts')"
+```
+
+This command will:
+1. Read `src/lib/pdf-parser.ts`
+2. Replace all occurrences of `节` with `\u8282` (Unicode escape)
+3. Replace all occurrences of `☆` with `\u2606` (Unicode escape)
+4. Write the fixed content back
+
+**Please approve the Node.js command above** so I can fix the Unicode character matching issue in the PDF parser.
+---
+任务结束：Thu Mar 19 08:39:47     2026, 退出码：0

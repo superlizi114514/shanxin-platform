@@ -18,6 +18,7 @@ interface Merchant {
   address: string | null;
   phone: string | null;
   verified: boolean;
+  claimedBy: string | null;
   school: {
     id: string;
     name: string;
@@ -35,6 +36,8 @@ interface Review {
   id: string;
   content: string;
   rating: number;
+  helpful: number;
+  isHelpful?: boolean;
   createdAt: string;
   user: {
     id: string;
@@ -65,6 +68,11 @@ export default function MerchantDetailPage() {
     totalPages: 0,
   });
   const [showReviewForm, setShowReviewForm] = useState(false);
+  const [helpfulStates, setHelpfulStates] = useState<Record<string, { count: number; hasVoted: boolean }>>({});
+  const [showClaimModal, setShowClaimModal] = useState(false);
+  const [claimData, setClaimData] = useState({ reason: "", proof: "" });
+  const [claimSubmitting, setClaimSubmitting] = useState(false);
+  const [userClaim, setUserClaim] = useState<{ status: string; reason?: string; rejectReason?: string } | null>(null);
 
   const merchantId = params.id as string;
 
@@ -95,6 +103,15 @@ export default function MerchantDetailPage() {
       if (response.ok) {
         setReviews(data.reviews);
         setPagination(data.pagination);
+        // Initialize helpful states with actual vote status from API
+        const helpfulData: Record<string, { count: number; hasVoted: boolean }> = {};
+        data.reviews.forEach((review: Review) => {
+          helpfulData[review.id] = {
+            count: review.helpful || 0,
+            hasVoted: review.isHelpful || false
+          };
+        });
+        setHelpfulStates(helpfulData);
       }
     } catch (error) {
       console.error("Failed to fetch reviews:", error);
@@ -103,10 +120,34 @@ export default function MerchantDetailPage() {
     }
   };
 
+  const handleToggleHelpful = async (reviewId: string) => {
+    if (!session?.user?.id) {
+      alert("请先登录后点赞");
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/merchants/${merchantId}/reviews/${reviewId}/helpful`, {
+        method: "POST",
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setHelpfulStates((prev) => ({
+          ...prev,
+          [reviewId]: { count: data.helpful, hasVoted: data.isHelpful },
+        }));
+      }
+    } catch (error) {
+      console.error("Failed to toggle helpful:", error);
+    }
+  };
+
   useEffect(() => {
     if (merchantId) {
       fetchMerchant();
       fetchReviews();
+      fetchUserClaim();
     }
   }, [merchantId]);
 
@@ -118,6 +159,53 @@ export default function MerchantDetailPage() {
     setShowReviewForm(false);
     fetchMerchant();
     fetchReviews(1);
+  };
+
+  const fetchUserClaim = async () => {
+    if (!session?.user?.id) return;
+    try {
+      const response = await fetch(`/api/merchants/claim?merchantId=${merchantId}`);
+      const data = await response.json();
+      if (data.claims && data.claims.length > 0) {
+        setUserClaim(data.claims[0]);
+      }
+    } catch (error) {
+      console.error("Failed to fetch user claim:", error);
+    }
+  };
+
+  const handleClaimSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!claimData.reason.trim()) {
+      alert("请填写申请理由");
+      return;
+    }
+    setClaimSubmitting(true);
+    try {
+      const response = await fetch("/api/merchants/claim", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          merchantId,
+          reason: claimData.reason,
+          proof: claimData.proof || null,
+        }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        alert("认领申请已提交，请等待管理员审核");
+        setShowClaimModal(false);
+        setClaimData({ reason: "", proof: "" });
+        fetchUserClaim();
+      } else {
+        alert(data.error || "提交失败，请重试");
+      }
+    } catch (error) {
+      console.error("Failed to submit claim:", error);
+      alert("提交失败，请重试");
+    } finally {
+      setClaimSubmitting(false);
+    }
   };
 
   if (loading) {
@@ -260,6 +348,38 @@ export default function MerchantDetailPage() {
                   )}
                 </div>
 
+                {/* Claim Button */}
+                {!merchant.claimedBy && session?.user?.id && !userClaim && (
+                  <div className="mt-6">
+                    <button
+                      onClick={() => setShowClaimModal(true)}
+                      className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 font-medium"
+                    >
+                      📋 认领商家
+                    </button>
+                    <p className="text-xs text-gray-500 mt-2 text-center">
+                      如果您是此商家的所有者，可以申请认领
+                    </p>
+                  </div>
+                )}
+
+                {/* Claim Status */}
+                {userClaim && (
+                  <div className="mt-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <p className="text-sm font-medium text-yellow-800">
+                      您的认领申请正在审核中
+                    </p>
+                    <p className="text-xs text-yellow-600 mt-1">
+                      申请理由：{userClaim.reason || "未填写"}
+                    </p>
+                    {userClaim.status === "rejected" && userClaim.rejectReason && (
+                      <p className="text-xs text-red-600 mt-2">
+                        拒绝原因：{userClaim.rejectReason}
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 {/* Write Review Button */}
                 {session?.user?.id ? (
                   <div className="mt-6">
@@ -304,40 +424,77 @@ export default function MerchantDetailPage() {
                 <p className="text-gray-500 text-center py-8">暂无评价</p>
               ) : (
                 <div className="space-y-4 max-h-96 overflow-y-auto">
-                  {reviews.map((review) => (
-                    <div
-                      key={review.id}
-                      className="border-b border-gray-100 pb-4 last:border-0 last:pb-0"
-                    >
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                          {review.user?.avatar ? (
-                            <Image
-                              src={review.user.avatar}
-                              alt={review.user.name || "用户"}
-                              width={32}
-                              height={32}
-                              className="rounded-full"
-                            />
-                          ) : (
-                            <span className="text-xs text-gray-500">
-                              {review.user?.name?.charAt(0) || "用"}
-                            </span>
-                          )}
+                  {reviews.map((review) => {
+                    const helpfulState = helpfulStates[review.id] || { count: 0, hasVoted: false };
+                    return (
+                      <div
+                        key={review.id}
+                        className="border-b border-gray-100 pb-4 last:border-0 last:pb-0"
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+                            {review.user?.avatar ? (
+                              <Image
+                                src={review.user.avatar}
+                                alt={review.user.name || "用户"}
+                                width={32}
+                                height={32}
+                                className="rounded-full"
+                              />
+                            ) : (
+                              <span className="text-xs text-gray-500">
+                                {review.user?.name?.charAt(0) || "用"}
+                              </span>
+                            )}
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">
+                              {review.user?.name || "匿名用户"}
+                            </p>
+                            <StarRating rating={review.rating} size="sm" />
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">
-                            {review.user?.name || "匿名用户"}
-                          </p>
-                          <StarRating rating={review.rating} size="sm" />
+                        <p className="text-gray-700 text-sm">{review.content}</p>
+
+                        {/* Review Images */}
+                        {review.images && review.images.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mt-3">
+                            {review.images.map((image) => (
+                              <div
+                                key={image.id}
+                                className="w-20 h-20 rounded-lg overflow-hidden border border-gray-200"
+                              >
+                                <Image
+                                  src={image.url}
+                                  alt="评价图片"
+                                  width={80}
+                                  height={80}
+                                  className="w-full h-full object-cover cursor-pointer hover:opacity-90"
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        <div className="flex items-center gap-4 mt-2">
+                          <span className="text-xs text-gray-400">
+                            {new Date(review.createdAt).toLocaleDateString("zh-CN")}
+                          </span>
+                          <button
+                            onClick={() => handleToggleHelpful(review.id)}
+                            className={`flex items-center gap-1 text-xs px-2 py-1 rounded transition-colors ${
+                              helpfulState.hasVoted
+                                ? "bg-blue-100 text-blue-600"
+                                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                            }`}
+                          >
+                            <span>👍</span>
+                            <span>有用 ({helpfulState.count})</span>
+                          </button>
                         </div>
                       </div>
-                      <p className="text-gray-700 text-sm">{review.content}</p>
-                      <p className="text-xs text-gray-400 mt-2">
-                        {new Date(review.createdAt).toLocaleDateString("zh-CN")}
-                      </p>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
 
@@ -390,6 +547,73 @@ export default function MerchantDetailPage() {
           </div>
         )}
       </main>
+
+      {/* Claim Modal */}
+      {showClaimModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="px-6 py-4 border-b">
+              <h2 className="text-xl font-bold text-gray-900">认领商家申请</h2>
+              <p className="text-sm text-gray-500 mt-1">
+                申请认领：{merchant.name}
+              </p>
+            </div>
+
+            <form onSubmit={handleClaimSubmit} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  申请理由 *
+                </label>
+                <textarea
+                  required
+                  value={claimData.reason}
+                  onChange={(e) => setClaimData({ ...claimData, reason: e.target.value })}
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="请说明您是此商家的所有者或管理者的理由..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  证明材料 URL（可选）
+                </label>
+                <input
+                  type="url"
+                  value={claimData.proof}
+                  onChange={(e) => setClaimData({ ...claimData, proof: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="营业执照、经营许可证等证明材料图片链接"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  提供证明材料可以加快审核速度
+                </p>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowClaimModal(false);
+                    setClaimData({ reason: "", proof: "" });
+                  }}
+                  disabled={claimSubmitting}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                >
+                  取消
+                </button>
+                <button
+                  type="submit"
+                  disabled={claimSubmitting}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {claimSubmitting ? "提交中..." : "提交申请"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

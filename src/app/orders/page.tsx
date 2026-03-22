@@ -204,12 +204,22 @@ export default function OrdersPage() {
 
   if (!session) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center relative overflow-hidden">
+        {/* Animated Background */}
+        <div className="fixed inset-0 bg-grid-pattern opacity-[0.02] pointer-events-none" />
+        <div className="fixed top-1/4 -left-1/4 w-96 h-96 bg-blue-400 rounded-full opacity-20 blur-3xl animate-pulse" />
+        <div className="fixed bottom-1/4 -right-1/4 w-96 h-96 bg-indigo-400 rounded-full opacity-20 blur-3xl animate-pulse delay-1000" />
+
+        <div className="text-center relative z-10">
+          <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-4">请先登录</h1>
           <Link
             href="/login"
-            className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700"
+            className="inline-block bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-3 rounded-xl hover:from-blue-700 hover:to-indigo-700 font-medium shadow-lg shadow-blue-500/30 transition-all duration-300"
           >
             登录
           </Link>
@@ -219,24 +229,34 @@ export default function OrdersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden">
+      {/* Animated Background Pattern */}
+      <div className="fixed inset-0 bg-grid-pattern opacity-[0.02] pointer-events-none" />
+      <div className="fixed top-1/4 -left-1/4 w-96 h-96 bg-blue-400 rounded-full opacity-20 blur-3xl animate-pulse" />
+      <div className="fixed bottom-1/4 -right-1/4 w-96 h-96 bg-indigo-400 rounded-full opacity-20 blur-3xl animate-pulse delay-1000" />
+
       {/* Header */}
-      <header className="bg-white shadow-sm">
+      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg shadow-md border-b border-gray-200/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
-            <Link href="/" className="text-xl font-bold text-gray-900">
-              山信二手平台
+            <Link href="/" className="flex items-center space-x-3 group">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-blue-500/25 transition-all duration-300 group-hover:scale-105">
+                <span className="text-white font-bold text-lg">山信</span>
+              </div>
+              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent hidden sm:block">
+                二手平台
+              </span>
             </Link>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
               <Link
                 href="/products"
-                className="text-gray-700 hover:text-gray-900"
+                className="text-gray-700 hover:text-blue-600 text-sm font-medium px-3 py-2 rounded-lg hover:bg-blue-50 transition-all"
               >
                 商品列表
               </Link>
               <Link
                 href="/orders"
-                className="text-blue-600 font-medium"
+                className="text-blue-600 font-medium text-sm px-3 py-2 rounded-lg bg-blue-50"
               >
                 我的订单
               </Link>
@@ -246,19 +266,26 @@ export default function OrdersPage() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">我的订单</h1>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-md">
+            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+          </div>
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">我的订单</h1>
+        </div>
 
         {/* Tabs */}
-        <div className="mb-6 flex gap-4 border-b border-gray-200">
+        <div className="mb-6 flex gap-2 border-b border-gray-200 pb-1">
           {TABS.map((tab) => (
             <button
               key={tab.value}
               onClick={() => setActiveTab(tab.value)}
-              className={`px-4 py-2 font-medium ${
+              className={`px-5 py-3 font-medium text-sm whitespace-nowrap transition-all duration-200 border-b-2 ${
                 activeTab === tab.value
-                  ? "text-blue-600 border-b-2 border-blue-600"
-                  : "text-gray-600 hover:text-gray-900"
+                  ? "text-blue-600 border-blue-600 bg-blue-50/50 rounded-t-xl"
+                  : "text-gray-600 border-transparent hover:text-gray-900 hover:bg-gray-50 rounded-t-xl"
               }`}
             >
               {tab.label}
@@ -272,10 +299,10 @@ export default function OrdersPage() {
             <button
               key={filter.value}
               onClick={() => setStatusFilter(filter.value)}
-              className={`px-4 py-2 rounded-md text-sm ${
+              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
                 statusFilter === filter.value
-                  ? "bg-blue-600 text-white"
-                  : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                  ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/25"
+                  : "bg-white/80 backdrop-blur-sm text-gray-700 border border-gray-200 hover:bg-blue-50 hover:border-blue-300"
               }`}
             >
               {filter.label}
@@ -286,17 +313,25 @@ export default function OrdersPage() {
         {/* Orders List */}
         {loading ? (
           <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            <p className="mt-4 text-gray-600">加载中...</p>
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <p className="mt-4 text-gray-600 font-medium">加载中...</p>
           </div>
         ) : orders.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-600">暂无订单</p>
+          <div className="text-center py-12 bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl border border-white/20">
+            <div className="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 10-8 0v4M5 9h14l1 12H4L5 9z" />
+              </svg>
+            </div>
+            <p className="text-gray-600 text-lg">暂无订单</p>
             <Link
               href="/products"
-              className="inline-block mt-4 text-blue-600 hover:text-blue-700"
+              className="inline-flex items-center gap-2 mt-4 text-blue-600 hover:text-blue-700 font-medium"
             >
-              去购物 →
+              去购物
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
             </Link>
           </div>
         ) : (
@@ -305,33 +340,40 @@ export default function OrdersPage() {
               {orders.map((order) => (
                 <div
                   key={order.id}
-                  className="bg-white rounded-lg shadow p-6"
+                  className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-lg p-6 border border-white/20 hover:shadow-xl transition-all duration-300"
                 >
                   {/* Order Header */}
                   <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-gray-200">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-4">
-                        <span className="font-medium text-gray-900">
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-3">
+                        <span className="font-semibold text-gray-900">
                           订单号：{order.orderNo}
                         </span>
                         <span
-                          className={`px-3 py-1 rounded-full text-sm ${
+                          className={`px-3 py-1.5 rounded-full text-sm font-medium ${
                             STATUS_COLOR_MAP[order.status]
                           }`}
                         >
                           {STATUS_MAP[order.status]}
                         </span>
                       </div>
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-gray-500 flex items-center gap-1.5">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
                         创建时间：{new Date(order.createdAt).toLocaleString("zh-CN")}
                       </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-wrap">
                       {renderActionButtons(order)}
                       <Link
                         href={`/orders/${order.id}`}
-                        className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 text-sm"
+                        className="px-4 py-2 bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 rounded-xl hover:from-gray-200 hover:to-gray-300 text-sm font-medium transition-all duration-200 flex items-center gap-1.5"
                       >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
                         查看详情
                       </Link>
                     </div>
@@ -342,11 +384,11 @@ export default function OrdersPage() {
                     {order.items.map((item) => (
                       <div
                         key={item.id}
-                        className="flex gap-4"
+                        className="flex gap-4 items-center"
                       >
                         <Link
                           href={`/products/${item.product.id}`}
-                          className="w-20 h-20 bg-gray-200 rounded-md overflow-hidden flex-shrink-0"
+                          className="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl overflow-hidden flex-shrink-0 shadow-md hover:shadow-lg transition-all duration-200 group"
                         >
                           {item.product.images.length > 0 ? (
                             <Image
@@ -354,18 +396,20 @@ export default function OrdersPage() {
                               alt={item.product.title}
                               width={80}
                               height={80}
-                              className="w-full h-full object-cover"
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
-                              暂无图片
+                              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              </svg>
                             </div>
                           )}
                         </Link>
                         <div className="flex-1">
                           <Link
                             href={`/products/${item.product.id}`}
-                            className="font-medium text-gray-900 hover:text-blue-600 line-clamp-1"
+                            className="font-medium text-gray-900 hover:text-blue-600 transition-colors duration-200 line-clamp-1"
                           >
                             {item.product.title}
                           </Link>
@@ -374,7 +418,7 @@ export default function OrdersPage() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="font-medium text-gray-900">
+                          <div className="font-bold text-lg bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                             ¥{(item.price * item.quantity).toFixed(2)}
                           </div>
                         </div>
@@ -384,12 +428,15 @@ export default function OrdersPage() {
 
                   {/* Order Footer */}
                   <div className="pt-4 border-t border-gray-200 flex justify-between items-center">
-                    <div className="text-sm text-gray-500">
+                    <div className="text-sm text-gray-500 flex items-center gap-1.5">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
                       {activeTab === "seller" || getOrderRole(order) === "seller"
                         ? `买家：${order.buyer.name || "匿名用户"}`
                         : `卖家：${order.seller.name || "匿名用户"}`}
                     </div>
-                    <div className="text-xl font-bold text-gray-900">
+                    <div className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                       合计：¥{order.totalAmount.toFixed(2)}
                     </div>
                   </div>
@@ -403,17 +450,17 @@ export default function OrdersPage() {
                 <button
                   onClick={() => handlePageChange(pagination.page - 1)}
                   disabled={pagination.page === 1}
-                  className="px-4 py-2 bg-white border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                  className="px-5 py-2.5 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-50 hover:border-blue-300 transition-all duration-200 font-medium text-gray-700"
                 >
                   上一页
                 </button>
-                <span className="text-gray-700">
+                <span className="text-gray-700 font-medium bg-white/80 backdrop-blur-sm px-4 py-2 rounded-xl border border-gray-200">
                   第 {pagination.page} / {pagination.totalPages} 页
                 </span>
                 <button
                   onClick={() => handlePageChange(pagination.page + 1)}
                   disabled={pagination.page === pagination.totalPages}
-                  className="px-4 py-2 bg-white border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                  className="px-5 py-2.5 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-50 hover:border-blue-300 transition-all duration-200 font-medium text-gray-700"
                 >
                   下一页
                 </button>

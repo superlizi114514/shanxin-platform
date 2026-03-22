@@ -1,0 +1,10 @@
+任务开始：Thu Mar 19 08:22:25     2026
+---
+I need your permission to read the files. Could you please grant me permission to read files in the `E:/项目总/山信二手平台/shanxin-platform/` directory? This will allow me to:
+
+1. Read the `pdf-parser.ts` file to understand the current parsing logic and fix the Unicode character matching issue
+2. Read `progress.txt` to update it once the fix is complete
+
+Please grant the necessary read permissions so I can proceed with fixing the PDF course schedule parsing issue.
+---
+任务结束：Thu Mar 19 08:22:41     2026, 退出码：0

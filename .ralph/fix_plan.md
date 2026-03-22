@@ -1,87 +1,219 @@
-# Ralph Fix Plan - 山信二手平台
+# Ralph Fix Plan - 山信二手平台 (2026-03-21 重构版)
 
-## M1 Priority - 总站框架 + 统一登录
+> 基于 MASTER_PLAN.md 优先级重构，与原 fix_plan.md 对比验证
 
-### Core Authentication (NextAuth configured, needs middleware)
-- [x] Add authentication middleware to protect routes
-- [x] Update User model with student info fields (studentId, school, major, class)
-- [x] Create user profile page with student information
-- [ ] Add registration flow with student ID verification
+---
 
-### Home Page Navigation (Partially done - needs station cards)
-- [x] Basic home page structure exists
-- [x] Add four station navigation cards (二手平台，个人课表，商家点评，学校新闻)
-- [x] Add user login status display in header
-- [x] Add logout functionality
+## 状态概览
 
-## M2 Priority - 二手平台分站
+| 阶段 | 原状态 | 实际状态 | 备注 |
+|------|--------|----------|------|
+| M1 总站框架 | ✅ 完成 | ⚠️ 待验证 | 需要功能验证 |
+| M2 二手平台 | ✅ 完成 | ⚠️ 待验证 | 需要功能验证 |
+| M3 个人课表 | ✅ 完成 | ⚠️ 待验证 | 需要功能验证 |
+| M4 商家点评 | ✅ 完成 | ⚠️ 待验证 | 需要功能验证 |
+| M5 学校新闻 | ✅ 完成 | ⚠️ 待验证 | 需要功能验证 |
+| M6 信息大全 | ✅ 完成 | ⚠️ 待验证 | 需要功能验证 |
+| M7 PDF 导入 | ✅ 完成 | ⚠️ 待验证 | 需要功能验证 |
 
-### Product Management
-- [ ] Product listing page with filters
-- [ ] Product creation form
-- [ ] Product detail page
-- [ ] Product image upload
-- [ ] Product CRUD operations (edit, delete, mark as sold)
+**说明**: fix_plan.md 标记全部完成，但 progress.txt 显示 0%，需要逐项验证。
 
-### Product API
-- [ ] GET /api/products - list products with filters
-- [ ] POST /api/products - create product
-- [ ] GET /api/products/[id] - get product details
-- [ ] PUT /api/products/[id] - update product
-- [ ] DELETE /api/products/[id] - delete product
+---
 
-## M3 Priority - 个人课表 x 地图
+## P0 优先级 - 核心功能修复 (立即执行)
 
-### Course Schedule
-- [ ] Course data model
-- [ ] Course import/add form
-- [ ] Weekly/daily view toggle
-- [ ] Click course to show classroom location
+### US-001 ~ US-003: PDF 解析修复
 
-### Campus Map
-- [ ] Classroom location data
-- [ ] Map visualization component
-- [ ] Distance calculation
-- [ ] Walking time estimation
+- [ ] US-001: 修复 PDF 课表解析 Unicode 字符匹配
+  - [ ] 在 pdf-parser.ts 中使用 Unicode 转义\u8282 匹配'节'字符
+  - [ ] 解析逻辑正确识别课程名称 (带☆标记)
+  - [ ] 正确提取节次信息 (X-Y 节格式)
+  - [ ] 正确提取周次信息
+  - [ ] 正确提取教室和教师信息
+  - [ ] 测试解析至少 29 条课程数据
+  - [ ] Typecheck passes
 
-## M4 Priority - 商家点评分站
+- [x] US-002: 添加 PDF 解析调试日志
+  - [x] 在 parseSchedulePDF 函数中添加提取文本的日志输出
+  - [x] 记录解析后的课程数量
+  - [x] 记录解析错误详情
+  - [x] 开发环境下显示详细日志
+  - [x] Typecheck passes
 
-### Merchant System
-- [ ] Merchant listing page
-- [ ] Merchant detail page
-- [ ] Merchant review form
-- [ ] Rating system (1-5 stars)
-- [ ] Merchant ranking/leaderboard
+- [x] US-003: 创建 PDF 测试文件验证解析
+  - [x] 创建测试脚本加载示例 PDF 文件
+  - [x] 调用 parseSchedulePDF 函数解析
+  - [x] 输出解析结果到控制台
+  - [x] 验证解析课程数量>0
+  - [x] Typecheck passes
 
-## M5 Priority - 学校新闻分站
+### US-004 ~ US-007: 校园地图
 
-### News System
-- [ ] News listing page
-- [ ] News categories
-- [ ] News detail page
-- [ ] News search
+- [x] US-004: 添加奎文校区建筑坐标数据
+  - [x] 在 CampusBuilding 表中添加奎文校区主要建筑
+  - [x] 建筑坐标格式：{"lat": 36.xxxx, "lng": 119.xxxx}
+  - [x] 包括：教学楼、宿舍楼、食堂、图书馆等
+  - [x] 创建 seed 脚本导入数据
+  - [x] Typecheck passes
 
-## Infrastructure
-- [x] Database migration for all models
-- [x] Environment configuration
-- [ ] Testing framework setup
-- [ ] API error handling middleware
+- [x] US-005: 添加滨海校区建筑坐标数据
+  - [x] 在 CampusBuilding 表中添加滨海校区主要建筑
+  - [x] 建筑坐标格式：{"lat": 36.xxxx, "lng": 119.xxxx}
+  - [x] 包括：教学楼、宿舍楼、食堂、图书馆等
+  - [x] 创建 seed 脚本导入数据
+  - [x] Typecheck passes
 
-## Completed
-- [x] Project initialization
-- [x] Next.js 16 + React 19 setup
-- [x] TypeScript configuration
-- [x] Tailwind CSS setup
-- [x] Prisma ORM with comprehensive schema
-- [x] NextAuth.js authentication setup
-- [x] Login page UI
-- [x] Register page
-- [x] Password reset flow
-- [x] Email verification flow
-- [x] User profile API
-- [x] Profile page
+- [ ] US-006: 创建校园地图可视化组件
+  - [ ] 创建 CampusMap 组件展示建筑标记
+  - [ ] 支持奎文和滨海两个校区切换
+  - [ ] 点击建筑显示详情弹窗
+  - [ ] 标记点使用不同颜色区分建筑类型
+  - [ ] Typecheck passes
+  - [ ] 浏览器验证
 
-## Notes
-- Focus on M1 completion first (portal + auth)
-- Test in browser after UI changes
-- Update this file after each milestone
+- [ ] US-007: 添加校区切换功能
+  - [ ] 在地图页面添加校区切换下拉框
+  - [ ] 选项：奎文校区、滨海校区
+  - [ ] 切换后更新地图显示范围
+  - [ ] 显示当前选中校区名称
+  - [ ] Typecheck passes
+  - [ ] 浏览器验证
+
+### US-008 ~ US-010: 课表页面
+
+- [ ] US-008: 完善课表页面 UI
+  - [ ] 显示周次选择器 (1-16 周)
+  - [ ] 以表格形式显示课程 (行=节次，列=星期)
+  - [ ] 课程卡片显示名称、教室、教师
+  - [ ] 不同课程使用不同颜色区分
+  - [ ] 点击课程显示详情和编辑选项
+  - [ ] Typecheck passes
+  - [ ] 浏览器验证
+
+- [ ] US-009: 完善课表导入页面
+  - [ ] 支持拖拽上传 PDF 文件
+  - [ ] 支持拖拽上传 Excel 文件 (.xlsx)
+  - [ ] 显示上传进度
+  - [ ] 显示导入结果摘要
+  - [ ] 显示导入错误信息
+  - [ ] Typecheck passes
+  - [ ] 浏览器验证
+
+- [ ] US-010: 创建管理员后台主页
+  - [ ] 创建 /admin 管理主页
+  - [ ] 显示管理功能卡片：商家管理、新闻管理、信息大全、用户管理
+  - [ ] 显示系统统计：用户数、商品数、商家数
+  - [ ] 仅管理员可访问 (权限验证)
+  - [ ] Typecheck passes
+  - [ ] 浏览器验证
+
+---
+
+## P1 优先级 - 管理后台
+
+### US-011 ~ US-014
+
+- [ ] US-011: 完善商家管理后台页面
+- [ ] US-012: 完善新闻管理后台页面
+- [ ] US-013: 完善信息大全管理后台页面
+- [ ] US-014: 创建用户管理后台页面
+
+---
+
+## P2 优先级 - 个人主页
+
+### US-015 ~ US-020
+
+- [ ] US-015: 完善个人主页基本信息
+- [ ] US-016: 添加个人主页 - 我的发布
+- [ ] US-017: 添加个人主页 - 我的收藏
+- [ ] US-018: 添加个人主页 - 我的课表
+- [ ] US-019: 添加个人主页 - 我的评价
+- [ ] US-020: 添加个人主页 - 账号安全
+
+---
+
+## P3 优先级 - 安全加固
+
+### US-021 ~ US-023
+
+- [ ] US-021: 对所有 API 输入进行安全验证
+- [ ] US-022: 添加 API 速率限制
+- [ ] US-023: 添加 CSRF 保护
+
+---
+
+## P4 优先级 - UI/UX 优化
+
+### US-024 ~ US-026
+
+- [ ] US-024: 优化首页响应式布局
+- [ ] US-025: 优化首页卡片动画效果
+- [ ] US-026: 添加首页-loading 骨架屏
+
+---
+
+## P5 优先级 - 功能完善
+
+### US-027 ~ US-040
+
+- [ ] US-027: 完善商品列表页面
+- [ ] US-028: 完善商品详情页面
+- [ ] US-029: 完善商家列表页面
+- [ ] US-030: 完善商家详情页面
+- [ ] US-031: 完善新闻列表页面
+- [ ] US-032: 完善新闻详情页面
+- [ ] US-033: 完善消息页面
+- [ ] US-034: 完善通知页面
+- [ ] US-035: 完善订单页面
+- [ ] US-036: 创建课程提醒页面
+- [ ] US-037: 添加登录/注册页面优化
+- [ ] US-038: 添加全局导航栏
+- [ ] US-039: 添加全局 Footer
+- [ ] US-040: 添加全局 Toast 通知组件
+
+---
+
+## P6 优先级 - 最终验证
+
+### US-041
+
+- [ ] US-041: 运行并验证所有功能
+
+---
+
+## 执行记录
+
+### 迭代日志
+
+| 日期 | 完成的任务 | 修改文件 | 测试状态 | 下一任务 |
+|------|------------|----------|----------|----------|
+| 2026-03-21 | 创建重构计划 | MASTER_PLAN.md, EXECUTION_PLAN.md | N/A | US-001 |
+
+---
+
+## 完成标准
+
+所有任务完成后，必须满足:
+
+- [ ] 41 个用户故事全部 passes=true
+- [ ] npm run build 成功
+- [ ] npm run lint 无错误
+- [ ] npx tsc --noEmit 通过
+- [ ] 核心流程可演示
+
+---
+
+## 与原 fix_plan.md 对比
+
+| 模块 | 原 fix_plan | 实际验证 | 差异 |
+|------|-------------|----------|------|
+| M1 | ✅ | ⚠️ 待验证 | 需要确认登录/注册流程 |
+| M2 | ✅ | ⚠️ 待验证 | 需要确认商品 CRUD |
+| M3 | ✅ | ⚠️ 待验证 | 需要确认 PDF 导入和地图 |
+| M4 | ✅ | ⚠️ 待验证 | 需要确认商家评价 |
+| M5 | ✅ | ⚠️ 待验证 | 需要确认新闻功能 |
+| M6 | ✅ | ⚠️ 待验证 | 需要确认信息大全 |
+| M7 | ✅ | ⚠️ 待验证 | 需要确认 PDF 解析 |
+
+**下一步**: 从 US-001 开始逐项验证和实现

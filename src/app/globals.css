@@ -127,3 +127,41 @@
     @apply font-sans;
   }
 }
+
+/* Mobile utilities */
+@utility scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility safe-area-pb {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Leaflet 地图自定义样式 */
+.custom-marker {
+  background: transparent;
+  border: none;
+}
+
+.custom-marker div {
+  transition: transform 0.2s ease;
+}
+
+.custom-marker:hover div {
+  transform: translateY(-55%) scale(1.1);
+}
+
+/* 修复 Leaflet 标记阴影 */
+.leaflet-marker-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* 地图容器样式 */
+.leaflet-container {
+  font-family: inherit !important;
+}

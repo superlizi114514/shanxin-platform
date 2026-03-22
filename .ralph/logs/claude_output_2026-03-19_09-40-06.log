@@ -1,0 +1,65 @@
+任务开始：Thu Mar 19 09:40:06     2026
+---
+I see the file system restrictions are in place. Based on my analysis of the logs, I can see exactly what changes need to be made to fix the PDF parser Unicode character matching. 
+
+Since I cannot directly access the source files, let me provide you with clear instructions to apply the fix manually:
+
+## US-001 Fix Required - PDF Parser Unicode Character Matching
+
+Based on the log analysis, the following changes need to be made to `src/lib/pdf-parser.ts`:
+
+### Change 1: Update course pattern regex (around line 41)
+```typescript
+// Change this:
+const coursePattern = /\u2606?(.+?)\s*(?:\[(\d+[-\d, 周]*)\])?\s*(\d+)-(\d+)\u8282\s*([一二三四五六日天])\s*(.+?)\s*(?:\((.+?)\))?/g;
+
+// To this (use Unicode escapes for ALL Chinese characters):
+const coursePattern = /\u2606?(.+?)\s*(?:\[(\d+[-\d,\u5468]*)\])?\s*(\d+)-(\d+)\u8282\s*([\u4e00\u4e8c\u4e09\u56db\u4e94\u516d\u65e5\u5929])\s*(.+?)\s*(?:\((.+?)\))?/g;
+```
+
+### Change 2: Update weekday pattern match (around line 85)
+```typescript
+// Change this:
+const dayMatch = trimmedLine.match(/([一二三四五六日天])/);
+
+// To this:
+const dayMatch = trimmedLine.match(/([\u4e00\u4e8c\u4e09\u56db\u4e94\u516d\u65e5\u5929])/);
+```
+
+### Change 3: Update dayMap (around line 119)
+```typescript
+// Change this:
+const dayMap: Record<string, number> = {
+  '一': 1, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6, '日': 7, '天': 7
+};
+
+// To this:
+const dayMap: Record<string, number> = {
+  '\u4e00': 1, '\u4e8c': 2, '\u4e09': 3, '\u56db': 4, '\u4e94': 5, '\u516d': 6, '\u65e5': 7, '\u5929': 7
+};
+```
+
+### Change 4: Update parseWeeks function (around line 128)
+```typescript
+// Change this:
+const parts = weekRange.replace(/周/g, '').split(',');
+
+// To this:
+const parts = weekRange.replace(/\u5468/g, '').split(',');
+```
+
+---
+
+**To complete this task, please grant me permission to:**
+1. Read and edit `E:/项目总/山信二手平台/shanxin-platform/src/lib/pdf-parser.ts`
+2. Run `npx tsc --noEmit` to verify TypeScript compilation
+3. Update `E:/项目总/山信二手平台/shanxin-platform/progress.txt`
+
+Alternatively, you can apply these changes manually and then run:
+```bash
+npm run lint
+```
+
+To verify the fix is correct.
+---
+任务结束：Thu Mar 19 09:44:02     2026, 退出码：0

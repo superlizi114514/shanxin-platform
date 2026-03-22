@@ -76,6 +76,10 @@ export async function GET() {
             },
           },
         },
+        visits: {
+          orderBy: { createdAt: "desc" },
+          take: 20, // 最近 20 条浏览记录
+        },
         _count: {
           select: {
             products: true,
@@ -83,6 +87,7 @@ export async function GET() {
             sellerOrders: true,
             reviews: true,
             collections: true,
+            visits: true,
           },
         },
       },
@@ -110,6 +115,7 @@ export async function GET() {
         buyerOrders: user.buyerOrders,
         sellerOrders: user.sellerOrders,
         reviews: user.reviews,
+        visits: user.visits,
       },
     });
   } catch (error) {

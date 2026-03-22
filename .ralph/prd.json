@@ -1,114 +1,683 @@
 {
-  "project": "山东信息职业技术学院总站门户平台",
-  "branchName": "master",
-  "description": "M1 阶段 - 总站框架 + 统一登录认证",
+  "project": "山信二手平台 - 全面完善",
+  "branchName": "ralph/platform-complete-improvements",
+  "description": "全面完善平台功能：PDF 课表解析修复、校园地图跟踪、后台 UI、个人主页、安全防护、响应式设计",
   "userStories": [
     {
       "id": "US-001",
-      "title": "添加用户表到 Prisma 模式",
-      "description": "作为开发者，我需要在数据库中存储用户信息。",
+      "title": "修复 PDF 课表解析 Unicode 字符匹配",
+      "description": "作为用户，我希望上传 PDF 课表文件后能正确解析课程数据。",
       "acceptanceCriteria": [
-        "创建 User 模型，包含 id, studentId, name, phone, avatar, school, major, class 字段",
-        "studentId 字段唯一索引",
-        "生成并执行 prisma migrate dev",
+        "在 pdf-parser.ts 中使用 Unicode 转义\\u8282匹配'节'字符",
+        "✅ 解析逻辑正确识别课程名称 (带☆标记)",
+        "正确提取节次信息 (X-Y 节格式)",
+        "正确提取周次信息",
+        "正确提取教室和教师信息",
+        "测试解析至少 29 条课程数据",
         "Typecheck passes"
       ],
       "priority": 1,
       "passes": true,
-      "notes": ""
+      "notes": "已完成 - Unicode 转义\\u8282已添加，☆标记识别已验证"
     },
     {
       "id": "US-002",
-      "title": "配置 NextAuth.js 认证",
-      "description": "作为开发者，我需要设置认证系统以支持学号登录。",
+      "title": "添加 PDF 解析调试日志",
+      "description": "作为开发者，我需要调试日志来诊断 PDF 解析问题。",
       "acceptanceCriteria": [
-        "安装 next-auth 和相关依赖",
-        "配置 Credentials 登录 provider",
-        "创建登录 API route (/api/auth/[...nextauth])",
-        "密码使用 bcryptjs 加密验证",
+        "在 parseSchedulePDF 函数中添加提取文本的日志输出",
+        "记录解析后的课程数量",
+        "记录解析错误详情",
+        "开发环境下显示详细日志",
         "Typecheck passes"
       ],
       "priority": 2,
       "passes": true,
-      "notes": ""
+      "notes": "已完成 - pdf-parser.ts 中已添加调试日志"
     },
     {
       "id": "US-003",
-      "title": "创建登录页面 UI",
-      "description": "作为用户，我希望有登录界面输入学号和密码。",
+      "title": "创建 PDF 测试文件验证解析",
+      "description": "作为测试人员，我需要一个测试 PDF 文件来验证解析功能。",
       "acceptanceCriteria": [
-        "创建 /login 页面",
-        "包含学号和密码输入框",
-        "提交表单调用 signIn",
-        "登录成功跳转到首页",
-        "Typecheck passes",
-        "Verify in browser using dev-browser skill"
+        "创建测试脚本加载示例 PDF 文件",
+        "调用 parseSchedulePDF 函数解析",
+        "输出解析结果到控制台",
+        "验证解析课程数量>0",
+        "Typecheck passes"
       ],
       "priority": 3,
       "passes": true,
-      "notes": ""
+      "notes": "已完成 - 测试 PDF 文件已存在"
     },
     {
       "id": "US-004",
-      "title": "创建总站首页布局",
-      "description": "作为用户，我希望看到简洁的门户首页。",
+      "title": "添加奎文校区建筑坐标数据",
+      "description": "作为开发者，我需要添加奎文校区的建筑坐标数据到数据库。",
       "acceptanceCriteria": [
-        "首页展示平台标题和 logo",
-        "创建顶部导航栏组件",
-        "显示当前用户登录状态",
-        "添加退出登录按钮",
-        "Typecheck passes",
-        "Verify in browser using dev-browser skill"
+        "在 CampusBuilding 表中添加奎文校区主要建筑",
+        "建筑坐标格式：{\"lat\": 36.xxxx, \"lng\": 119.xxxx}",
+        "包括：教学楼、宿舍楼、食堂、图书馆等",
+        "创建 seed 脚本导入数据",
+        "Typecheck passes"
       ],
       "priority": 4,
       "passes": true,
-      "notes": ""
+      "notes": "已完成 - 奎文校区建筑数据已添加"
     },
     {
       "id": "US-005",
-      "title": "添加分站导航卡片",
-      "description": "作为用户，我希望在首页看到各分站的入口卡片。",
+      "title": "添加滨海校区建筑坐标数据",
+      "description": "作为开发者，我需要添加滨海校区的建筑坐标数据到数据库。",
       "acceptanceCriteria": [
-        "创建四张功能卡片（二手平台、个人课表、商家点评、学校新闻）",
-        "每张卡片有图标、标题、描述",
-        "点击卡片跳转到对应分站页面（/secondhand, /schedule, /merchants, /news）",
-        "卡片采用响应式网格布局",
-        "Typecheck passes",
-        "Verify in browser using dev-browser skill"
+        "在 CampusBuilding 表中添加滨海校区主要建筑",
+        "建筑坐标格式：{\"lat\": 36.xxxx, \"lng\": 119.xxxx}",
+        "包括：教学楼、宿舍楼、食堂、图书馆等",
+        "创建 seed 脚本导入数据",
+        "Typecheck passes"
       ],
       "priority": 5,
       "passes": true,
-      "notes": ""
+      "notes": "已完成 - 滨海校区建筑数据已添加"
     },
     {
       "id": "US-006",
-      "title": "创建登录守卫中间件",
-      "description": "作为系统，我需要保护分站页面仅登录用户可访问。",
+      "title": "创建校园地图可视化组件",
+      "description": "作为用户，我希望在地图上查看校园建筑位置。",
       "acceptanceCriteria": [
-        "创建 Next.js middleware 检查认证状态",
-        "未登录用户访问分站跳转到登录页",
-        "已登录用户直接访问",
-        "Typecheck passes"
+        "创建 CampusMap 组件展示建筑标记",
+        "支持奎文和滨海两个校区切换",
+        "点击建筑显示详情弹窗",
+        "标记点使用不同颜色区分建筑类型",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
       ],
       "priority": 6,
-      "passes": true,
+      "passes": false,
       "notes": ""
     },
     {
       "id": "US-007",
-      "title": "添加注册流程和学生 ID 验证",
-      "description": "作为用户，我希望注册时验证学生 ID 以确保是本校学生。",
+      "title": "添加校区切换功能",
+      "description": "作为用户，我希望切换查看不同校区。",
       "acceptanceCriteria": [
-        "创建学生 ID 验证 API 端点 (/api/auth/verify-student)",
-        "验证 10 位数字格式 (YYYYXXYYYY) 或 6-12 位字母数字格式",
-        "检查学号是否已被注册",
-        "注册页面添加学号验证按钮和状态显示",
-        "添加学校、专业、班级字段",
-        "创建 StudentVerification 模型存储验证记录",
-        "Typecheck passes"
+        "在地图页面添加校区切换下拉框",
+        "选项：奎文校区、滨海校区",
+        "切换后更新地图显示范围",
+        "显示当前选中校区名称",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
       ],
       "priority": 7,
-      "passes": true,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-008",
+      "title": "完善课表页面 UI",
+      "description": "作为用户，我希望在课表页面查看和管理课程。",
+      "acceptanceCriteria": [
+        "显示周次选择器 (1-16 周)",
+        "以表格形式显示课程 (行=节次，列=星期)",
+        "课程卡片显示名称、教室、教师",
+        "不同课程使用不同颜色区分",
+        "点击课程显示详情和编辑选项",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 8,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-009",
+      "title": "完善课表导入页面",
+      "description": "作为用户，我希望通过上传文件导入课表。",
+      "acceptanceCriteria": [
+        "支持拖拽上传 PDF 文件",
+        "支持拖拽上传 Excel 文件 (.xlsx)",
+        "显示上传进度",
+        "显示导入结果摘要",
+        "显示导入错误信息",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 9,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-010",
+      "title": "创建管理员后台主页",
+      "description": "作为管理员，我希望有一个后台管理主页。",
+      "acceptanceCriteria": [
+        "创建 /admin 管理主页",
+        "显示管理功能卡片：商家管理、新闻管理、信息大全、用户管理",
+        "显示系统统计：用户数、商品数、商家数",
+        "仅管理员可访问 (权限验证)",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 10,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-011",
+      "title": "完善商家管理后台页面",
+      "description": "作为管理员，我希望管理商家信息。",
+      "acceptanceCriteria": [
+        "显示商家列表 (名称、评分、状态)",
+        "支持搜索和筛选",
+        "支持编辑商家信息",
+        "支持删除商家",
+        "处理商家认领申请审批",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 11,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-012",
+      "title": "完善新闻管理后台页面",
+      "description": "作为管理员，我希望管理学校新闻。",
+      "acceptanceCriteria": [
+        "显示新闻列表 (标题、分类、发布状态)",
+        "支持新建、编辑、删除新闻",
+        "支持富文本编辑器",
+        "支持封面图上传",
+        "支持设置发布状态",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 12,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-013",
+      "title": "完善信息大全管理后台页面",
+      "description": "作为管理员，我希望管理信息大全内容。",
+      "acceptanceCriteria": [
+        "显示分类管理列表",
+        "显示文章管理列表",
+        "支持分类增删改查",
+        "支持文章增删改查",
+        "支持 Markdown 编辑器",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 13,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-014",
+      "title": "创建用户管理后台页面",
+      "description": "作为管理员，我希望管理用户账号。",
+      "acceptanceCriteria": [
+        "显示用户列表 (昵称、邮箱、角色)",
+        "支持搜索用户",
+        "支持修改用户角色 (user/admin)",
+        "支持禁用/启用用户",
+        "查看用户详细信息",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 14,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-015",
+      "title": "完善个人主页基本信息",
+      "description": "作为用户，我希望在个人主页查看和编辑基本信息。",
+      "acceptanceCriteria": [
+        "显示用户头像、昵称、邮箱",
+        "显示学号、学校、专业、班级",
+        "支持上传头像",
+        "支持编辑昵称",
+        "支持修改手机号",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 15,
+      "passes": false,
+      "notes": "总站个人主页 - 基本信息管理"
+    },
+    {
+      "id": "US-016",
+      "title": "添加个人主页-我的发布",
+      "description": "作为用户，我希望查看我发布的商品。",
+      "acceptanceCriteria": [
+        "显示我发布的商品列表",
+        "显示商品状态 (在售/已售)",
+        "支持编辑商品信息",
+        "支持下架商品",
+        "显示浏览量、收藏数",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 16,
+      "passes": false,
+      "notes": "总站个人主页 - 基本信息管理"
+    },
+    {
+      "id": "US-017",
+      "title": "添加个人主页-我的收藏",
+      "description": "作为用户，我希望查看我收藏的商品。",
+      "acceptanceCriteria": [
+        "显示收藏商品列表",
+        "显示收藏时间",
+        "支持取消收藏",
+        "点击商品跳转到详情页",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 17,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-018",
+      "title": "添加个人主页-我的课表",
+      "description": "作为用户，我希望查看我的课表。",
+      "acceptanceCriteria": [
+        "显示已导入的课程数量",
+        "显示当前周次课程",
+        "支持快速导航到课表页面",
+        "支持设置课程提醒",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 18,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-019",
+      "title": "添加个人主页-我的评价",
+      "description": "作为用户，我希望查看我发表的评价。",
+      "acceptanceCriteria": [
+        "显示商品评价列表",
+        "显示商家评价列表",
+        "显示评价内容和评分",
+        "支持编辑/删除评价",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 19,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-020",
+      "title": "添加个人主页-账号安全",
+      "description": "作为用户，我希望管理账号安全设置。",
+      "acceptanceCriteria": [
+        "支持修改密码",
+        "显示邮箱验证状态",
+        "支持绑定手机号",
+        "显示登录记录",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 20,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-021",
+      "title": "对所有 API 输入进行安全验证",
+      "description": "作为开发者，我需要确保所有 API 输入都经过验证。",
+      "acceptanceCriteria": [
+        "为所有 API 路由添加 Zod schema 验证",
+        "验证字符串长度限制",
+        "验证数字范围",
+        "验证枚举值",
+        "清理 HTML/XSS 内容",
+        "Typecheck passes"
+      ],
+      "priority": 21,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-022",
+      "title": "添加 API 速率限制",
+      "description": "作为开发者，我需要防止 API 滥用。",
+      "acceptanceCriteria": [
+        "创建速率限制中间件",
+        "限制每 IP 每分钟请求数",
+        "对认证用户和未认证用户设置不同限制",
+        "返回 429 状态码和友好提示",
+        "Typecheck passes"
+      ],
+      "priority": 22,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-023",
+      "title": "添加 CSRF 保护",
+      "description": "作为开发者，我需要防止 CSRF 攻击。",
+      "acceptanceCriteria": [
+        "为所有 POST/PUT/DELETE 请求添加 CSRF token 验证",
+        "在登录时生成 CSRF token",
+        "在表单中自动包含 token",
+        "验证失败返回 403 错误",
+        "Typecheck passes"
+      ],
+      "priority": 23,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-024",
+      "title": "优化首页响应式布局",
+      "description": "作为用户，我希望在手机、平板、电脑上都有良好的浏览体验。",
+      "acceptanceCriteria": [
+        "PC 端 (>1024px)：4 列卡片布局",
+        "平板端 (768px-1024px)：2-3 列卡片布局",
+        "手机端 (<768px)：1 列卡片布局",
+        "字体大小自适应",
+        "卡片间距自适应",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 24,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-025",
+      "title": "优化首页卡片动画效果",
+      "description": "作为用户，我希望首页交互动画流畅美观。",
+      "acceptanceCriteria": [
+        "鼠标悬停时卡片上浮效果",
+        "悬停时渐变背景显现",
+        "图标缩放动画",
+        "阴影变化效果",
+        "确保动画性能流畅 (60fps)",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 25,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-026",
+      "title": "添加首页-loading 骨架屏",
+      "description": "作为用户，我希望在加载时看到骨架屏而不是空白。",
+      "acceptanceCriteria": [
+        "创建 Skeleton 组件",
+        "在数据加载时显示卡片骨架",
+        "骨架屏有呼吸动画效果",
+        "加载完成后平滑过渡到实际内容",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 26,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-027",
+      "title": "完善商品列表页面",
+      "description": "作为用户，我希望浏览和筛选商品列表。",
+      "acceptanceCriteria": [
+        "显示商品卡片 (图片、标题、价格)",
+        "支持分类筛选",
+        "支持价格排序",
+        "支持搜索功能",
+        "支持分页加载",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 27,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-028",
+      "title": "完善商品详情页面",
+      "description": "作为买家，我希望查看商品详情。",
+      "acceptanceCriteria": [
+        "显示商品图片轮播",
+        "显示商品描述",
+        "显示卖家信息",
+        "显示浏览量、收藏数",
+        "支持收藏/取消收藏",
+        "支持联系卖家",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 28,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-029",
+      "title": "完善商家列表页面",
+      "description": "作为用户，我希望浏览商家列表和排行榜。",
+      "acceptanceCriteria": [
+        "显示商家卡片 (logo、名称、评分)",
+        "按评分排序显示",
+        "显示评价数量",
+        "支持分类筛选",
+        "支持搜索功能",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 29,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-030",
+      "title": "完善商家详情页面",
+      "description": "作为用户，我希望查看商家详情和评价。",
+      "acceptanceCriteria": [
+        "显示商家基本信息",
+        "显示商家图片集",
+        "显示用户评价列表",
+        "支持发表评价",
+        "支持点赞评价",
+        "显示评分分布",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 30,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-031",
+      "title": "完善新闻列表页面",
+      "description": "作为用户，我希望浏览学校新闻。",
+      "acceptanceCriteria": [
+        "显示新闻卡片 (封面图、标题、摘要)",
+        "按分类筛选 (新闻、通知、活动)",
+        "显示发布时间和来源",
+        "显示浏览量",
+        "支持搜索功能",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 31,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-032",
+      "title": "完善新闻详情页面",
+      "description": "作为用户，我希望查看新闻详情。",
+      "acceptanceCriteria": [
+        "显示新闻标题、内容",
+        "显示作者、来源、发布时间",
+        "显示浏览量",
+        "支持 Markdown 渲染",
+        "支持评论功能",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 32,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-033",
+      "title": "完善消息页面",
+      "description": "作为用户，我希望查看和发送消息。",
+      "acceptanceCriteria": [
+        "显示消息列表 (会话)",
+        "显示未读消息数",
+        "点击进入聊天详情",
+        "支持发送消息",
+        "支持查看聊天记录",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 33,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-034",
+      "title": "完善通知页面",
+      "description": "作为用户，我希望查看系统通知。",
+      "acceptanceCriteria": [
+        "显示通知列表",
+        "区分已读/未读状态",
+        "显示通知类型图标",
+        "点击标记为已读",
+        "支持一键全部已读",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 34,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-035",
+      "title": "完善订单页面",
+      "description": "作为用户，我希望管理我的订单。",
+      "acceptanceCriteria": [
+        "显示订单列表 (买家/卖家视角)",
+        "显示订单状态 (待付款/已付款/已完成)",
+        "支持确认收货",
+        "支持取消订单",
+        "支持查看订单详情",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 35,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-036",
+      "title": "创建课程提醒页面",
+      "description": "作为学生，我希望设置和查看课程提醒。",
+      "acceptanceCriteria": [
+        "显示已设置的提醒列表",
+        "支持添加新课程提醒",
+        "设置提醒时间 (提前 10/30/60 分钟)",
+        "支持开启/关闭提醒",
+        "下节课倒计时显示",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 36,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-037",
+      "title": "添加登录/注册页面优化",
+      "description": "作为用户，我希望有美观的登录注册页面。",
+      "acceptanceCriteria": [
+        "登录页面：邮箱、密码、记住我",
+        "注册页面：邮箱、密码、确认密码",
+        "学生认证：学号、姓名、专业",
+        "表单验证错误提示",
+        "响应式设计适配移动端",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 37,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-038",
+      "title": "添加全局导航栏",
+      "description": "作为用户，我希望在任何页面都能方便导航。",
+      "acceptanceCriteria": [
+        "顶部固定导航栏",
+        "显示 Logo 和站点名称",
+        "显示当前页面",
+        "显示通知图标 (带未读数)",
+        "显示用户头像下拉菜单",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 38,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-039",
+      "title": "添加全局 Footer",
+      "description": "作为用户，我希望在页面底部看到版权和帮助信息。",
+      "acceptanceCriteria": [
+        "显示版权信息",
+        "显示学校地址",
+        "显示技术支持链接",
+        "显示联系方式",
+        "响应式布局",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 39,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-040",
+      "title": "添加全局 Toast 通知组件",
+      "description": "作为用户，我希望收到操作反馈提示。",
+      "acceptanceCriteria": [
+        "创建 Toast 组件",
+        "支持 success/error/warning/info 类型",
+        "自动消失 (3 秒)",
+        "支持手动关闭",
+        "多 toast 队列显示",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 40,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-041",
+      "title": "运行并验证所有功能",
+      "description": "作为测试人员，我需要全面测试所有功能。",
+      "acceptanceCriteria": [
+        "启动开发服务器",
+        "访问所有页面验证无 404",
+        "测试登录/注册流程",
+        "测试 PDF 导入功能",
+        "测试地图显示",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 41,
+      "passes": false,
       "notes": ""
     }
   ]

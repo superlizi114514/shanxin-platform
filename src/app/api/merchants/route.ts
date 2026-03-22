@@ -12,10 +12,26 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "20");
     const schoolId = searchParams.get("schoolId");
     const category = searchParams.get("category");
+    const minRating = searchParams.get("minRating");
+    const sortBy = searchParams.get("sortBy");
+    const search = searchParams.get("search");
 
     const skip = (page - 1) * limit;
 
-    const where: any = {};
+    const where: {
+      schoolId?: string;
+      categories?: {
+        some: {
+          id: string;
+        };
+      };
+      rating?: {
+        gte: number;
+      };
+      name?: {
+        contains: string;
+      };
+    } = {};
 
     if (schoolId) {
       where.schoolId = schoolId;
@@ -27,6 +43,33 @@ export async function GET(request: NextRequest) {
           id: category,
         },
       };
+    }
+
+    if (minRating) {
+      where.rating = {
+        gte: parseFloat(minRating),
+      };
+    }
+
+    if (search) {
+      where.name = {
+        contains: search,
+      };
+    }
+
+    const orderBy: {
+      rating?: "asc" | "desc";
+      reviewCount?: "asc" | "desc";
+      name?: "asc" | "desc";
+    } = {};
+    if (sortBy === "rating") {
+      orderBy.rating = "desc";
+    } else if (sortBy === "reviews") {
+      orderBy.reviewCount = "desc";
+    } else if (sortBy === "name") {
+      orderBy.name = "asc";
+    } else {
+      orderBy.rating = "desc";
     }
 
     const [merchants, total] = await Promise.all([
@@ -48,7 +91,7 @@ export async function GET(request: NextRequest) {
             select: { id: true, rating: true },
           },
         },
-        orderBy: { rating: "desc" },
+        orderBy,
       }),
       prisma.merchant.count({ where }),
     ]);

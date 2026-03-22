@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { auth } from "@/lib/auth";
+import { createNotification } from "@/lib/notifications";
 
 const prisma = new PrismaClient();
 
@@ -67,7 +68,14 @@ export async function GET(request: NextRequest) {
       });
     } else {
       // 获取对话列表（按用户分组）
-      const conversations: any[] = await prisma.$queryRaw`
+      const conversations: Array<{
+        otherUserId: string;
+        otherUserName: string | null;
+        otherUserAvatar: string | null;
+        otherUserEmail: string | null;
+        unreadCount: number;
+        lastMessageAt: Date | null;
+      }> = await prisma.$queryRaw`
         SELECT DISTINCT
           CASE
             WHEN m.senderId = ${session.user.id} THEN m.receiverId
@@ -169,6 +177,20 @@ export async function POST(request: NextRequest) {
         receiver: {
           select: { id: true, name: true, email: true, avatar: true },
         },
+      },
+    });
+
+    // 为接收者创建通知
+    await createNotification({
+      userId: receiverId,
+      type: "message",
+      title: `收到来自 ${session.user.name || "用户"} 的消息`,
+      content: content.length > 50 ? content.substring(0, 50) + "..." : content,
+      link: `/messages`,
+      metadata: {
+        senderId: session.user.id,
+        senderName: session.user.name,
+        messageId: message.id,
       },
     });
 

@@ -1,0 +1,88 @@
+
+> shanxin-platform@0.1.0 dev
+> next dev --port 3016 --port 3023
+
+▲ Next.js 16.1.7 (Turbopack)
+- Local:         http://localhost:3023
+- Network:       http://10.98.102.22:3023
+- Environments: .env.local, .env.development, .env
+
+✓ Starting...
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+✓ Ready in 626ms
+[Middleware] GET / [57ab1cc8-3ec5-413a-92ff-043fc1c2830d]
+[Middleware] 完成 / - 1ms [57ab1cc8-3ec5-413a-92ff-043fc1c2830d]
+ GET / 200 in 1307ms (compile: 1125ms, proxy.ts: 75ms, render: 107ms)
+[Middleware] GET /.well-known/appspecific/com.chrome.devtools.json [2e070c48-945f-4a5f-b566-79f7b81e72d5]
+[Middleware] 完成 /.well-known/appspecific/com.chrome.devtools.json - 1ms [2e070c48-945f-4a5f-b566-79f7b81e72d5]
+ GET /api/auth/session 200 in 745ms (compile: 725ms, render: 20ms)
+ GET /api/auth/session 200 in 10ms (compile: 5ms, render: 5ms)
+[Middleware] GET /schedule [42c7173d-87a9-4781-af98-15353d5cb7a5]
+[Middleware] 完成 /schedule - 0ms [42c7173d-87a9-4781-af98-15353d5cb7a5]
+ GET /schedule 200 in 242ms (compile: 223ms, proxy.ts: 6ms, render: 13ms)
+prisma:query SELECT `main`.`Course`.`id`, `main`.`Course`.`userId`, `main`.`Course`.`courseName`, `main`.`Course`.`teacher`, `main`.`Course`.`classroomId`, `main`.`Course`.`classroom`, `main`.`Course`.`dayOfWeek`, `main`.`Course`.`startTime`, `main`.`Course`.`endTime`, `main`.`Course`.`period`, `main`.`Course`.`weekStart`, `main`.`Course`.`weekEnd`, `main`.`Course`.`weekPattern`, `main`.`Course`.`color`, `main`.`Course`.`notes`, `main`.`Course`.`reminderEnabled`, `main`.`Course`.`reminderMinutes`, `main`.`Course`.`createdAt`, `main`.`Course`.`updatedAt` FROM `main`.`Course` WHERE `main`.`Course`.`userId` = ? ORDER BY `main`.`Course`.`dayOfWeek` ASC, `main`.`Course`.`startTime` ASC LIMIT ? OFFSET ?
+ GET /api/courses 200 in 128ms (compile: 105ms, render: 23ms)
+prisma:query SELECT `main`.`Course`.`id`, `main`.`Course`.`userId`, `main`.`Course`.`courseName`, `main`.`Course`.`teacher`, `main`.`Course`.`classroomId`, `main`.`Course`.`classroom`, `main`.`Course`.`dayOfWeek`, `main`.`Course`.`startTime`, `main`.`Course`.`endTime`, `main`.`Course`.`period`, `main`.`Course`.`weekStart`, `main`.`Course`.`weekEnd`, `main`.`Course`.`weekPattern`, `main`.`Course`.`color`, `main`.`Course`.`notes`, `main`.`Course`.`reminderEnabled`, `main`.`Course`.`reminderMinutes`, `main`.`Course`.`createdAt`, `main`.`Course`.`updatedAt` FROM `main`.`Course` WHERE `main`.`Course`.`userId` = ? ORDER BY `main`.`Course`.`dayOfWeek` ASC, `main`.`Course`.`startTime` ASC LIMIT ? OFFSET ?
+ GET /api/courses 200 in 10ms (compile: 1352µs, render: 8ms)
+[Middleware] GET /schedule/import [7c334240-dbd1-48a6-b3f3-21af1ec8b150]
+[Middleware] 完成 /schedule/import - 1ms [7c334240-dbd1-48a6-b3f3-21af1ec8b150]
+ GET /schedule/import 200 in 184ms (compile: 165ms, proxy.ts: 6ms, render: 12ms)
+prisma:query SELECT `main`.`Course`.`id`, `main`.`Course`.`userId`, `main`.`Course`.`courseName`, `main`.`Course`.`teacher`, `main`.`Course`.`classroomId`, `main`.`Course`.`classroom`, `main`.`Course`.`dayOfWeek`, `main`.`Course`.`startTime`, `main`.`Course`.`endTime`, `main`.`Course`.`period`, `main`.`Course`.`weekStart`, `main`.`Course`.`weekEnd`, `main`.`Course`.`weekPattern`, `main`.`Course`.`color`, `main`.`Course`.`notes`, `main`.`Course`.`reminderEnabled`, `main`.`Course`.`reminderMinutes`, `main`.`Course`.`createdAt`, `main`.`Course`.`updatedAt` FROM `main`.`Course` WHERE `main`.`Course`.`userId` = ? ORDER BY `main`.`Course`.`dayOfWeek` ASC, `main`.`Course`.`startTime` ASC LIMIT ? OFFSET ?
+ GET /api/courses 200 in 23ms (compile: 2ms, render: 21ms)
+prisma:query SELECT `main`.`Course`.`id`, `main`.`Course`.`userId`, `main`.`Course`.`courseName`, `main`.`Course`.`teacher`, `main`.`Course`.`classroomId`, `main`.`Course`.`classroom`, `main`.`Course`.`dayOfWeek`, `main`.`Course`.`startTime`, `main`.`Course`.`endTime`, `main`.`Course`.`period`, `main`.`Course`.`weekStart`, `main`.`Course`.`weekEnd`, `main`.`Course`.`weekPattern`, `main`.`Course`.`color`, `main`.`Course`.`notes`, `main`.`Course`.`reminderEnabled`, `main`.`Course`.`reminderMinutes`, `main`.`Course`.`createdAt`, `main`.`Course`.`updatedAt` FROM `main`.`Course` WHERE `main`.`Course`.`userId` = ? ORDER BY `main`.`Course`.`dayOfWeek` ASC, `main`.`Course`.`startTime` ASC LIMIT ? OFFSET ?
+ GET /api/courses 200 in 15ms (compile: 1315µs, render: 14ms)
+[Middleware] GET /schedule/import [88b61b57-031f-4522-b45c-28b0186ca3cf]
+[Middleware] 完成 /schedule/import - 1ms [88b61b57-031f-4522-b45c-28b0186ca3cf]
+ GET /schedule/import 200 in 24ms (compile: 3ms, proxy.ts: 7ms, render: 14ms)
+开始解析 PDF 文件...
+PDF 解析完成: { '页数': undefined, '文本长度': 32, '信息': undefined }
+提取的文本预览: 
+
+-- 1 of 2 --
+
+
+
+-- 2 of 2 --
+
+
+课表导入失败: Error: PDF 文件似乎是图像型或加密的，无法提取文本。请使用文字型 PDF 或截图后导入。
+    at parseSchedulePDF (src\lib\pdf-parser.ts:74:11)
+    at async POST (src\app\api\courses\import\route.ts:103:17)
+  72 |   const onlyPageMarkers = /^[\s\n--\dof]*$/.test(pdfText.replace(/\n/g, ''));
+  73 |   if (onlyPageMarkers) {
+> 74 |     throw new Error('PDF 文件似乎是图像型或加密的，无法提取文本。请使用文字型 PDF 或截图后导入。');
+     |           ^
+  75 |   }
+  76 |
+  77 |   return parseCourseText(pdfText, userId);
+ POST /api/courses/import 500 in 804ms (compile: 664ms, render: 141ms)
+Persisting failed: Unable to write SST file 00000053.sst
+
+Caused by:
+    请求的操作无法在使用用户映射区域打开的文件上执行。 (os error 1224)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+⚠ Found a change in next.config.ts. Restarting the server to apply the changes...
+▲ Next.js 16.1.7 (Turbopack)
+- Local:         http://localhost:3023
+- Network:       http://10.98.102.22:3023
+- Environments: .env.local, .env.development, .env
+
+✓ Starting...
+⨯ Unable to acquire lock at E:\项目总\山信二手平台\shanxin-platform\.next\dev\lock, is another instance of next dev running?
+  Suggestion: If you intended to restart next dev, terminate the other process, and then try again.
+[?25h

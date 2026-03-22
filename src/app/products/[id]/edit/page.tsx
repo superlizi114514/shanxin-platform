@@ -55,14 +55,10 @@ export default function EditProductPage() {
 
   const isSubmitting = submitting || uploading;
 
-  // 重定向如果未登录
-  if (status === "unauthenticated") {
-    router.push(`/login?redirect=/products/${params.id}/edit`);
-    return null;
-  }
-
+  // Fetch product data
   useEffect(() => {
-    if (typeof params.id !== "string") return;
+    // Skip if unauthenticated or invalid id
+    if (status === "unauthenticated" || typeof params.id !== "string") return;
 
     const fetchProduct = async () => {
       setLoading(true);
@@ -90,7 +86,14 @@ export default function EditProductPage() {
     };
 
     fetchProduct();
-  }, [params.id]);
+  }, [params.id, status]);
+
+  // Redirect if unauthenticated
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push(`/login?redirect=/products/${params.id}/edit`);
+    }
+  }, [status, router, params.id]);
 
   const handleChange = (
     e: React.ChangeEvent<

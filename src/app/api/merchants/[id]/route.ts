@@ -95,6 +95,12 @@ export async function PUT(
         address: body.address,
         phone: body.phone,
         verified: body.verified,
+        categories: body.categoryIds
+          ? {
+              set: [],
+              connect: body.categoryIds.map((categoryId: string) => ({ id: categoryId })),
+            }
+          : undefined,
       },
       include: {
         school: {

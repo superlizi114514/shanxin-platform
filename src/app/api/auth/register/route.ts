@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create user with student information
-    const userData: any = {
+    const userData = {
       email,
       password: hashedPassword,
       name: name || null,
@@ -116,7 +116,7 @@ export async function POST(request: NextRequest) {
         major: major || "",
         class: classValue || "",
         verified: true, // Auto-verified since we validated the format
-        userId: (user as any).id,
+        userId: user.id,
       },
     });
 
@@ -135,10 +135,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         user: {
-          id: (user as any).id,
+          id: user.id,
           email: user.email,
           name: user.name,
-          studentId: (user as any).studentId,
+          studentId: user.studentId,
         },
         message: "Registration successful. Please check your email to verify your account.",
       },

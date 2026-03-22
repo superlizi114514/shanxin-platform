@@ -1,7 +1,5 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import Google from "next-auth/providers/google";
-import GitHub from "next-auth/providers/github";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
@@ -51,21 +49,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         };
       },
     }),
-    Google({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      authorization: {
-        params: {
-          prompt: "consent",
-          access_type: "offline",
-          response_type: "code",
-        },
-      },
-    }),
-    GitHub({
-      clientId: process.env.GITHUB_CLIENT_ID!,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
-    }),
+    // Google and GitHub providers are optional - uncomment when configured
+    // Google({
+    //   clientId: process.env.GOOGLE_CLIENT_ID || "",
+    //   clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+    // }),
+    // GitHub({
+    //   clientId: process.env.GITHUB_CLIENT_ID || "",
+    //   clientSecret: process.env.GITHUB_CLIENT_SECRET || "",
+    // }),
   ],
   session: {
     strategy: "jwt",
@@ -79,7 +71,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (account?.provider === "google" || account?.provider === "github") {
         try {
           // Check if user exists
-          let existingUser = await prisma.user.findUnique({
+          const existingUser = await prisma.user.findUnique({
             where: { email: user.email! },
           });
 

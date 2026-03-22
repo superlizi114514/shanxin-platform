@@ -17,7 +17,12 @@ export async function GET(request: NextRequest) {
 
     const skip = (page - 1) * limit;
 
-    const where: any = {};
+    const where: {
+      category?: string;
+      status?: string;
+      schoolId?: string;
+      OR?: Array<{ title: { contains: string } } | { description: { contains: string } }>;
+    } = {};
 
     if (category) {
       where.category = category;

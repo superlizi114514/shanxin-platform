@@ -1,0 +1,5 @@
+任务开始：Thu Mar 19 11:10:14     2026
+---
+API Error: 429 {"error":{"code":"throttling","message":"hour allocated quota exceeded.","param":null,"type":"invalid_request_error"},"request_id":"7ef46742-c01a-9c08-9d43-69f35283fcdb"}
+---
+任务结束：Thu Mar 19 11:13:29     2026, 退出码：0

@@ -1,0 +1,44 @@
+任务开始：Thu Mar 19 08:22:27     2026
+---
+Based on the logs I've analyzed, here's the fix needed for `src/lib/pdf-parser.ts`:
+
+## Fix for US-001: PDF Parser Unicode Character Matching
+
+The issue is that the Chinese character `'节'` in regex patterns needs to use Unicode escape sequences for proper matching.
+
+### The Fix
+
+In `src/lib/pdf-parser.ts`, replace all occurrences of the literal Chinese character `'节'` in regex patterns with its Unicode escape sequence `\u8282`:
+
+**Before:**
+```typescript
+const periodPattern = /(\d+)-(\d+) 节/g;
+```
+
+**After:**
+```typescript
+const periodPattern = /(\d+)-(\d+)\u8282/g;
+```
+
+Similarly, if there's a `'☆'` character in the patterns, replace it with `\u2606`:
+
+**Before:**
+```typescript
+const courseNamePattern = /☆(.+?)☆/g;
+```
+
+**After:**
+```typescript
+const courseNamePattern = /\u2606(.+?)\u2606/g;
+```
+
+---
+
+To proceed, I need your permission to read and modify the source file. Could you please **approve the Read tool request** when it appears, or alternatively:
+
+1. **Copy the file** `src/lib/pdf-parser.ts` to `.ralph/pdf-parser.ts` so I can read and modify it
+2. **Paste the content** of `pdf-parser.ts` in this chat
+
+Which option would you prefer?
+---
+任务结束：Thu Mar 19 08:23:58     2026, 退出码：0

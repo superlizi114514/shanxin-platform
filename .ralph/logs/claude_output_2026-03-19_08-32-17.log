@@ -1,0 +1,9 @@
+任务开始：Thu Mar 19 08:32:17     2026
+---
+I need permission to read the file. Let me ask for your help:
+
+I'm trying to fix the PDF parsing Unicode issue (US-001), but I need to read the `pdf-parser.ts` file which is outside my allowed working directory. 
+
+Could you please grant permission to read files from the parent directory, or alternatively, you could paste the content of `E:\项目总\山信二手平台\shanxin-platform\src\lib\pdf-parser.ts` here so I can make the fix?
+---
+任务结束：Thu Mar 19 08:35:31     2026, 退出码：0

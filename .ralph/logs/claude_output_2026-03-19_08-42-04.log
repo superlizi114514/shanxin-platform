@@ -1,0 +1,12 @@
+任务开始：Thu Mar 19 08:42:04     2026
+---
+I need permission to access the source files to fix the PDF parser. Please grant me permission to read and edit files in the shanxin-platform project directory.
+
+Once I have permission, I will:
+1. Read `src/lib/pdf-parser.ts` to understand the current implementation
+2. Fix the Unicode character matching issue (use `\u8282` for '节')
+3. Verify the parsing logic for course names, sections, weeks, and teacher/classroom info
+4. Run TypeScript typecheck
+5. Update progress.txt to mark US-001 as completed
+---
+任务结束：Thu Mar 19 08:42:37     2026, 退出码：0

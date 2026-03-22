@@ -59,6 +59,8 @@ export async function POST(
     }
 
     const { id: productId } = await params;
+    const body = await request.json();
+    const { note } = body || {};
 
     // 检查商品是否存在
     const product = await prisma.product.findUnique({
@@ -83,23 +85,42 @@ export async function POST(
     });
 
     if (existingCollection) {
-      // 取消收藏
-      await prisma.collection.delete({
-        where: { id: existingCollection.id },
-      });
+      // 已收藏 - 支持更新备注
+      if (note !== undefined) {
+        const updatedCollection = await prisma.collection.update({
+          where: { id: existingCollection.id },
+          data: { note },
+        });
+
+        return NextResponse.json({
+          message: "已更新备注",
+          isCollected: true,
+          collection: updatedCollection,
+        });
+      }
 
       return NextResponse.json({
-        message: "已取消收藏",
-        isCollected: false,
+        message: "已收藏",
+        isCollected: true,
+        collection: existingCollection,
       });
     } else {
-      // 添加收藏
-      const collection = await prisma.collection.create({
-        data: {
-          userId: session.user.id,
-          productId,
-        },
-      });
+      // 未收藏 - 添加收藏并增加收藏数量
+      const [collection] = await prisma.$transaction([
+        prisma.collection.create({
+          data: {
+            userId: session.user.id,
+            productId,
+            note: note || null,
+          },
+        }),
+        prisma.product.update({
+          where: { id: productId },
+          data: {
+            collectionCount: { increment: 1 },
+          },
+        }),
+      ]);
 
       return NextResponse.json({
         message: "已添加收藏",
@@ -150,9 +171,18 @@ export async function DELETE(
       );
     }
 
-    await prisma.collection.delete({
-      where: { id: collection.id },
-    });
+    // 删除收藏并减少收藏数量
+    await prisma.$transaction([
+      prisma.collection.delete({
+        where: { id: collection.id },
+      }),
+      prisma.product.update({
+        where: { id: productId },
+        data: {
+          collectionCount: { decrement: 1 },
+        },
+      }),
+    ]);
 
     return NextResponse.json({
       message: "已取消收藏",

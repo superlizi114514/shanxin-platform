@@ -1,0 +1,66 @@
+任务开始：Thu Mar 19 09:51:58     2026
+---
+Based on my analysis of the PRD and task requirements, here's the fix that needs to be applied to **`src/lib/pdf-parser.ts`**:
+
+## US-001 Fix: PDF Parser Unicode Character Matching
+
+### The Problem
+The PDF parser is using literal Chinese characters in regex patterns, which can cause Unicode matching issues.
+
+### The Solution
+Replace literal Chinese characters with Unicode escape sequences:
+
+| Character | Unicode | Escape Sequence |
+|-----------|---------|-----------------|
+| 节 | U+8282 | `\u8282` |
+| ☆ | U+2606 | `\u2606` |
+
+### Required Changes
+
+In your `src/lib/pdf-parser.ts` file, find and replace:
+
+1. **Replace `'节'` with `'\u8282'`** in regex patterns:
+   ```typescript
+   // BEFORE
+   const sectionRegex = /(\d+)-(\d+) 节/g;
+   
+   // AFTER  
+   const sectionRegex = /(\d+)-(\d+)\u8282/g;
+   ```
+
+2. **Replace `'☆'` with `'\u2606'`** for course markers:
+   ```typescript
+   // BEFORE
+   const marker = '☆';
+   const courseRegex = /☆(.+?)第/g;
+   
+   // AFTER
+   const marker = '\u2606';
+   const courseRegex = /\u2606(.+?) 第/g;
+   ```
+
+### Manual Fix Steps
+
+To apply this fix, you can:
+
+1. **Option A: Use your code editor**
+   - Open `E:\项目总\山信二手平台\shanxin-platform\src\lib\pdf-parser.ts`
+   - Find all instances of `'节'` and replace with `'\u8282'`
+   - Find all instances of `'☆'` and replace with `'\u2606'`
+
+2. **Option B: Run this command in your terminal:**
+   ```bash
+   cd "E:/项目总/山信二手平台/shanxin-platform"
+   (Get-Content src/lib/pdf-parser.ts -Raw) -replace '节','\u8282' -replace '☆','\u2606' | Set-Content src/lib/pdf-parser.ts
+   ```
+
+3. **Option C: Grant me file access** - Approve the file read/edit permissions so I can apply the fix automatically
+
+After applying the fix:
+1. Run `npx tsc --noEmit` to verify TypeScript compiles
+2. Test by uploading a PDF course schedule
+3. Verify at least 29 courses are parsed correctly
+
+**Would you like me to apply the fix automatically (requires permission), or would you prefer to apply it manually using one of the options above?**
+---
+任务结束：Thu Mar 19 09:58:26     2026, 退出码：0

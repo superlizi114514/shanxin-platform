@@ -1,0 +1,29 @@
+任务开始：Thu Mar 19 08:59:29     2026
+---
+I need your help to grant permission to read the file. Please approve the read request for `E:/项目总/山信二手平台/shanxin-platform/src/lib/pdf-parser.ts` so I can then write the fix.
+
+Alternatively, if you prefer, you can manually apply the following changes to the file:
+
+**Changes needed in `src/lib/pdf-parser.ts`:**
+
+1. **Line ~41** - Update `coursePattern` regex to use Unicode escapes:
+   - Change `'周'` to `\u5468`
+   - Change `([一二三四五六日天])` to `([\u4e00\u4e8c\u4e09\u56db\u4e94\u516d\u65e5\u5929])`
+
+2. **Line ~85** - Update `dayMatch` pattern:
+   - Change `([一二三四五六日天])` to `([\u4e00\u4e8c\u4e09\u56db\u4e94\u516d\u65e5\u5929])`
+
+3. **Line ~119** - Update `dayMap` object keys:
+   - Change `'一': 1` to `'\u4e00': 1`
+   - Change `'二': 2` to `'\u4e8c': 2`
+   - Change `'三': 3` to `'\u4e09': 3`
+   - Change `'四': 4` to `'\u56db': 4`
+   - Change `'五': 5` to `'\u4e94': 5`
+   - Change `'六': 6` to `'\u516d': 6`
+   - Change `'日': 7` to `'\u65e5': 7`
+   - Change `'天': 7` to `'\u5929': 7`
+
+4. **Line ~128** - Update `parseWeeks` function:
+   - Change `.replace(/周/g, '')` to `.replace(/\u5468/g, '')`
+---
+任务结束：Thu Mar 19 09:19:39     2026, 退出码：0

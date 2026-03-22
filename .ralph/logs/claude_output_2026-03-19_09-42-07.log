@@ -1,0 +1,17 @@
+任务开始：Thu Mar 19 09:42:07     2026
+---
+I need permission to read the files. Let me explain what I need to do:
+
+**Task**: Fix Unicode character matching in the PDF parser to correctly parse course schedules.
+
+**Files I need to read**:
+1. `src/lib/pdf-parser.ts` - The parser that needs the Unicode fix
+2. `progress.txt` - To update progress after fixing
+
+**Changes needed**:
+- Use Unicode escape `\u8282` to match the Chinese character '节' in the regex patterns
+- Ensure proper parsing of course names, periods, weeks, classrooms, and teachers
+
+Could you please grant read permission so I can proceed with the fix?
+---
+任务结束：Thu Mar 19 09:42:28     2026, 退出码：0

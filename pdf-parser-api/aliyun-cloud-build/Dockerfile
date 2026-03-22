@@ -1,0 +1,13 @@
+FROM registry.cn-hangzhou.cr.aliyuncs.com/fc-custom/python3.10:latest
+
+WORKDIR /code
+
+# 安装依赖（Linux 版本）
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple/
+
+# 复制代码
+COPY index.py /code/index.py
+
+# 启动命令
+CMD ["python3", "index.py"]

@@ -1,0 +1,4 @@
+# Progress Log - ralph/info-guide-and-pdf-import
+
+Archived at: 2026-03-18
+Status: Completed - All core features implemented

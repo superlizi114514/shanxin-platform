@@ -110,7 +110,16 @@ export async function PUT(
     const removedImageIds = body.removedImageIds || [];
 
     // 构建更新数据的图片操作
-    const imagesUpdate: any = {};
+    const imagesUpdate: {
+      deleteMany?: {
+        where: {
+          id: { in: string[] };
+        };
+      };
+      createMany?: {
+        data: { url: string }[];
+      };
+    } = {};
 
     // 删除被移除的图片
     if (removedImageIds.length > 0) {
@@ -122,24 +131,29 @@ export async function PUT(
     }
 
     // 添加新图片（不在当前列表中的）
-    const urlsToDelete = newUrls.filter((url: string) => !currentUrls.includes(url));
-    if (urlsToDelete.length > 0) {
+    const urlsToAdd = newUrls.filter((url: string) => !currentUrls.includes(url));
+    if (urlsToAdd.length > 0) {
       imagesUpdate.createMany = {
-        data: urlsToDelete.map((url: string) => ({ url })),
+        data: urlsToAdd.map((url: string) => ({ url })),
       };
     }
 
-    const updateData: any = {
+    // Build update data
+    const updateData: Record<string, unknown> = {
       title: body.title,
       description: body.description,
       price: body.price ? parseFloat(body.price) : undefined,
       category: body.category,
       status: body.status,
-      schoolId: body.schoolId,
     };
 
+    // Handle schoolId - allow null to clear it
+    if ('schoolId' in body) {
+      updateData.schoolId = body.schoolId === '' ? null : (body.schoolId || null);
+    }
+
     // 如果有图片更新，添加图片操作
-    if (removedImageIds.length > 0 || urlsToDelete.length > 0) {
+    if (removedImageIds.length > 0 || urlsToAdd.length > 0) {
       updateData.images = imagesUpdate;
     }
 

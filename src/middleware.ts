@@ -20,6 +20,17 @@ export default auth(async (req) => {
   const { nextUrl } = req;
   const isLoggedIn = !!req.auth;
   const pathname = nextUrl.pathname;
+  const startTime = Date.now();
+
+  // 生成请求 ID 用于追踪
+  const requestId = req.headers.get('x-request-id') || crypto.randomUUID();
+  const responseHeaders = new Headers(req.headers);
+  responseHeaders.set('x-request-id', requestId);
+
+  // 记录请求开始（仅开发环境）
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`[Middleware] ${req.method} ${pathname} [${requestId}]`);
+  }
 
   // Check if trying to access protected route while not logged in
   const isProtectedRoute = protectedRoutes.some((route) =>
@@ -41,7 +52,18 @@ export default auth(async (req) => {
     return NextResponse.redirect(new URL("/", nextUrl.origin));
   }
 
-  return NextResponse.next();
+  const response = NextResponse.next();
+
+  // 添加请求 ID 到响应头
+  response.headers.set('x-request-id', requestId);
+
+  // 记录请求耗时（仅开发环境）
+  if (process.env.NODE_ENV === 'development') {
+    const duration = Date.now() - startTime;
+    console.log(`[Middleware] 完成 ${pathname} - ${duration}ms [${requestId}]`);
+  }
+
+  return response;
 });
 
 // Matcher to determine which routes should run the middleware

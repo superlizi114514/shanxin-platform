@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { put } from "@vercel/blob";
 import { auth } from "@/lib/auth";
+import { writeFile, mkdir } from "fs/promises";
+import { join } from "path";
 
 export async function POST(request: NextRequest) {
   try {
@@ -45,24 +47,55 @@ export async function POST(request: NextRequest) {
     const fileExtension = file.name.split(".").pop() || "jpg";
     const filename = `uploads/${timestamp}-${randomString}.${fileExtension}`;
 
-    // Convert File to Buffer for Vercel Blob
+    // Convert File to Buffer
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // Upload to Vercel Blob
-    const blob = await put(filename, buffer, {
-      access: "public",
-      contentType: file.type,
-    });
+    // Try Vercel Blob first, fall back to local storage
+    const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
+
+    if (blobToken && blobToken !== "vercel_blob_your-blob-token" && blobToken !== "your-blob-read-write-token") {
+      try {
+        // Upload to Vercel Blob
+        const blob = await put(filename, buffer, {
+          access: "public",
+          contentType: file.type,
+        });
+
+        return NextResponse.json({
+          url: blob.url,
+          filename: blob.pathname,
+        });
+      } catch (blobError) {
+        console.warn("Vercel Blob upload failed, falling back to local storage:", blobError);
+        // Fall through to local storage
+      }
+    }
+
+    // Fall back to local storage
+    const uploadDir = join(process.cwd(), "public", "uploads");
+    const filepath = join(uploadDir, filename);
+
+    // Ensure upload directory exists
+    await mkdir(uploadDir, { recursive: true });
+
+    // Write file to disk
+    await writeFile(filepath, buffer);
+
+    // Return local URL
+    const baseUrl = request.headers.get("host") || "localhost:3000";
+    const protocol = request.headers.get("x-forwarded-proto") || "http";
+    const localUrl = `${protocol}://${baseUrl}/${filename}`;
 
     return NextResponse.json({
-      url: blob.url,
-      filename: blob.pathname,
+      url: localUrl,
+      filename: filename,
+      local: true,
     });
   } catch (error) {
     console.error("Upload error:", error);
     return NextResponse.json(
-      { error: "Upload failed. Please ensure BLOB_READ_WRITE_TOKEN is configured." },
+      { error: "Upload failed: " + (error as Error).message },
       { status: 500 }
     );
   }

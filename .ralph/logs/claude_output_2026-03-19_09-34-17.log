@@ -1,0 +1,46 @@
+任务开始：Thu Mar 19 09:34:17     2026
+---
+Based on the logs, I can see the fix that needs to be applied. The key issue is that the Chinese character '节' needs to be replaced with its Unicode escape sequence `\u8282` in regex patterns.
+
+Since I cannot directly access files outside the `.ralph` directory due to session permission restrictions, I need your help:
+
+**Option 1: Copy the file to .ralph directory**
+Could you please copy `src/lib/pdf-parser.ts` to the `.ralph` directory so I can read and modify it?
+
+```bash
+copy E:\项目总\山信二手平台\shanxin-platform\src\lib\pdf-parser.ts E:\项目总\山信二手平台\shanxin-platform\.ralph\
+```
+
+**Option 2: Grant permission**
+Grant permission for me to read files in `E:/项目总/山信二手平台/shanxin-platform/src/lib/`
+
+**Option 3: Paste the content**
+Paste the current content of `pdf-parser.ts` in this chat
+
+---
+
+In the meantime, based on the logs I've analyzed, here's the **exact fix** needed:
+
+### Fix for pdf-parser.ts
+
+The issue is that Chinese characters in regex patterns need Unicode escape sequences for reliable matching:
+
+| Character | Unicode Escape | Usage |
+|-----------|---------------|-------|
+| 节 | `\u8282` | Section marker (X-Y 节 format) |
+| ☆ | `\u2606` | Course name marker |
+| 周 | `\u5468` | Week marker |
+
+### Key changes in regex patterns:
+
+```typescript
+// BEFORE (literal Chinese characters - may fail):
+const coursePattern = /☆?(.+?)\s*(?:\[(\d+[-\d, 周]*)\])?\s*(\d+)-(\d+) 节/g;
+
+// AFTER (Unicode escapes - reliable):
+const coursePattern = /\u2606?(.+?)\s*(?:\[(\d+[-\d, \u5468]*)\])?\s*(\d+)-(\d+)\u8282/g;
+```
+
+Would you like me to provide the complete fixed file, or can you grant me access to read the current file first?
+---
+任务结束：Thu Mar 19 09:40:02     2026, 退出码：0

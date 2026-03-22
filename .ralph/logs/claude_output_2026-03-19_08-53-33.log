@@ -1,0 +1,16 @@
+任务开始：Thu Mar 19 08:53:33     2026
+---
+I see the system needs your permission to access the files. Could you please grant permission for me to read and edit files in the `E:\项目总\山信二手平台\shanxin-platform` directory? 
+
+Alternatively, you can:
+1. Copy and paste the contents of `pdf-parser.ts` here
+2. Or tell me what specific changes need to be made
+
+Based on the task description, I need to:
+- Fix Unicode character matching for '节' (use `\u8282`)
+- Ensure proper parsing of course names (with ☆ mark)
+- Parse session info (X-Y 节 format)
+- Parse week info
+- Parse classroom and teacher info
+---
+任务结束：Thu Mar 19 08:54:03     2026, 退出码：0

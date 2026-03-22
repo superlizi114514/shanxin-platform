@@ -1,0 +1,22 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "installCommand": "npm install",
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "outputDirectory": ".next",
+  "regions": ["hnd1"],
+  "env": {
+    "NEXT_PUBLIC_SITE_URL": "https://sxhh.online",
+    "DATABASE_URL": "file:./dev.db",
+    "AUTH_SECRET": "VGhpc0lzQVNlY3JldEtleUZvckRldkxvY2FsaG9zdDEyMzQ1Njc4OQ==",
+    "NEXTAUTH_URL": "https://sxhh.online",
+    "RESEND_API_KEY": "re_your-resend-api-key",
+    "BLOB_READ_WRITE_TOKEN": "vercel_blob_your-blob-token",
+    "GOOGLE_CLIENT_ID": "your-google-client-id",
+    "GOOGLE_CLIENT_SECRET": "your-google-client-secret",
+    "GITHUB_CLIENT_ID": "your-github-client-id",
+    "GITHUB_CLIENT_SECRET": "your-github-client-secret",
+    "PDF_PARSER_API_URL": "https://superlizi-sxhh.hf.space"
+  }
+}

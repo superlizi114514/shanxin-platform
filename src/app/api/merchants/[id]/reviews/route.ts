@@ -104,6 +104,10 @@ export async function GET(
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "20");
 
+    // 获取当前用户 ID（如果已登录）
+    const session = await auth();
+    const userId = session?.user?.id;
+
     const skip = (page - 1) * limit;
 
     const [reviews, total] = await Promise.all([
@@ -118,6 +122,11 @@ export async function GET(
           images: {
             select: { id: true, url: true },
           },
+          // 包含点赞用户列表，用于检查当前用户是否已点赞
+          helpfulUsers: userId ? {
+            where: { userId },
+            select: { userId: true },
+          } : false,
         },
         orderBy: { createdAt: "desc" },
       }),
@@ -126,8 +135,14 @@ export async function GET(
       }),
     ]);
 
+    // 为每个评价添加 isHelpful 字段
+    const reviewsWithHelpful = reviews.map((review) => ({
+      ...review,
+      isHelpful: userId ? (review.helpfulUsers?.length ?? 0) > 0 : false,
+    }));
+
     return NextResponse.json({
-      reviews,
+      reviews: reviewsWithHelpful,
       pagination: {
         page,
         limit,

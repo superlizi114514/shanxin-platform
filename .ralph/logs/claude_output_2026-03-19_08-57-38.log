@@ -1,0 +1,59 @@
+任务开始：Thu Mar 19 08:57:38     2026
+---
+## US-001: PDF Parser Unicode Fix - Manual Instructions
+
+Due to sandbox permission restrictions, I cannot directly access the `src/lib/pdf-parser.ts` file. Here are the detailed instructions to apply the fix manually:
+
+### Step 1: Open the file
+Open `E:/项目总/山信二手平台/shanxin-platform/src/lib/pdf-parser.ts` in your code editor.
+
+### Step 2: Find all regex patterns with '节' character
+
+Use your editor's search function (Ctrl+F) to find all occurrences of `节` in the file.
+
+### Step 3: Replace each occurrence
+
+For **each regex pattern** containing `节`, replace it with `\u8282`:
+
+**Example replacements:**
+
+| Before | After |
+|--------|-------|
+| `/(\d+)-(\d+) 节/g` | `/(\d+)-(\d+)\u8282/g` |
+| `/(\d+) 节/g` | `/(\d+)\u8282/g` |
+| `/.*节.*/` | `/.*\u8282.*/` |
+| `/第 (\d+) 节/g` | `/第 (\d+)\u8282/g` |
+
+### Step 4: Also check for '☆' character
+
+If you find `☆` in any regex patterns, replace it with `\u2606`:
+
+| Before | After |
+|--------|-------|
+| `/☆/g` | `/\u2606/g` |
+
+### Step 5: Save and verify
+
+1. Save the file
+2. Open a terminal in the project directory
+3. Run: `npx tsc --noEmit`
+4. Verify no TypeScript errors
+
+### Step 6: Update progress.txt
+
+After the fix is applied and verified, update `.ralph/progress.txt`:
+
+```markdown
+| US-001 | 修复 PDF 课表解析 Unicode 字符匹配 | ✅ Complete | 100% |
+```
+
+---
+
+**To grant me permission to do this automatically**, you would need to add the project root directory to the allowed working directories for this session.
+
+Would you like to:
+1. Apply the fix manually using these instructions
+2. Grant broader file permissions so I can do it automatically
+3. Copy the pdf-parser.ts file to the `.ralph` directory manually, then I can edit it
+---
+任务结束：Thu Mar 19 09:11:16     2026, 退出码：0

@@ -1,0 +1,14 @@
+
+> shanxin-platform@0.1.0 dev
+> next dev
+
+⚠ Port 3000 is in use by an unknown process, using available port 3008 instead.
+▲ Next.js 16.1.7 (Turbopack)
+- Local:         http://localhost:3008
+- Network:       http://198.18.0.1:3008
+- Environments: .env.local, .env.development, .env
+
+✓ Starting...
+⨯ Unable to acquire lock at E:\项目总\山信二手平台\shanxin-platform\.next\dev\lock, is another instance of next dev running?
+  Suggestion: If you intended to restart next dev, terminate the other process, and then try again.
+[?25h

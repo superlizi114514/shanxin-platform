@@ -1,0 +1,159 @@
+任务开始：Thu Mar 19 09:21:29     2026
+---
+Based on my analysis of the logs, I have the complete fix ready. The issue is that the Chinese character `'节'` needs to use Unicode escape sequence `\u8282` in regex patterns for reliable matching.
+
+**Here's the complete fixed `pdf-parser.ts` file:**
+
+```typescript
+/**
+ * PDF Parser for Course Schedule
+ * Uses Unicode escape sequences for reliable Chinese character matching.
+ */
+
+import PDFParse from 'pdf-parse';
+
+export interface ParsedCourse {
+  courseName: string;
+  weekRange: string;
+  sessions: string;
+  dayOfWeek: number;
+  classroom: string;
+  teacher: string;
+  weeks?: number[];
+}
+
+export async function parseSchedulePDF(buffer: Buffer): Promise<ParsedCourse[]> {
+  try {
+    const data = await PDFParse(buffer);
+    const text = data.text;
+    console.log('[PDF Parser] Extracted text length:', text.length);
+    const courses = parseCourseText(text);
+    console.log('[PDF Parser] Parsed courses:', courses.length);
+    return courses;
+  } catch (error) {
+    console.error('[PDF Parser] Error parsing PDF:', error);
+    throw new Error(`Failed to parse PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+function parseCourseText(text: string): ParsedCourse[] {
+  const courses: ParsedCourse[] = [];
+  const normalizedText = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
+  // Using Unicode escape \u8282 for '节' character and \u2606 for '☆'
+  const coursePattern = /\u2606?(.+?)\s*(?:\[([\d-\d, 周]*)\])?\s*(\d+)-(\d+)\u8282\s*([一二三四五六日天])\s*(.+?)\s*(?:\((.+?)\))?/g;
+
+  let match;
+  while ((match = coursePattern.exec(normalizedText)) !== null) {
+    const [, courseNameRaw, weekRange, sessionStart, sessionEnd, dayChar, classroom, teacher] = match;
+    const courseName = courseNameRaw?.trim() || '';
+    const dayOfWeek = parseDayOfWeek(dayChar);
+    const weeks = parseWeeks(weekRange);
+
+    if (courseName && sessionStart && sessionEnd && dayOfWeek) {
+      courses.push({
+        courseName,
+        weekRange: weekRange || '',
+        sessions: `${sessionStart}-${sessionEnd}`,
+        dayOfWeek,
+        classroom: classroom?.trim() || '',
+        teacher: teacher?.trim() || '',
+        weeks
+      });
+    }
+  }
+
+  if (courses.length === 0) {
+    return parseCourseTextAlternative(normalizedText);
+  }
+
+  return courses;
+}
+
+function parseCourseTextAlternative(text: string): ParsedCourse[] {
+  const courses: ParsedCourse[] = [];
+  const lines = text.split('\n').filter(line => line.trim().length > 0);
+
+  for (const line of lines) {
+    const trimmedLine = line.trim();
+    // Using Unicode escape \u8282 for '节' character
+    const sessionMatch = trimmedLine.match(/(\d+)-(\d+)\s*\u8282/);
+
+    if (sessionMatch) {
+      const dayMatch = trimmedLine.match(/([一二三四五六日天])/);
+      const weekMatch = trimmedLine.match(/\[(\d+[-\d,]*)\]/);
+
+      if (dayMatch) {
+        const sessionStart = sessionMatch[1];
+        const sessionEnd = sessionMatch[2];
+        const dayOfWeek = parseDayOfWeek(dayMatch[1]);
+        const weekRange = weekMatch ? weekMatch[1] : '';
+        const courseNameMatch = trimmedLine.match(/\u2606?(.+?)\s*(?:\[|\d+-\d+\u8282)/);
+        const courseName = courseNameMatch ? courseNameMatch[1].trim() : '';
+
+        const afterSession = trimmedLine.split(/\d+-\d+\s*\u8282/)[1] || '';
+        const parts = afterSession.split(/\s+/).filter(p => p.trim());
+        const classroom = parts[1] || parts[0] || '';
+        const teacher = parts[2] || '';
+
+        if (courseName && sessionStart && sessionEnd && dayOfWeek) {
+          courses.push({
+            courseName,
+            weekRange,
+            sessions: `${sessionStart}-${sessionEnd}`,
+            dayOfWeek,
+            classroom: classroom.trim(),
+            teacher: teacher ? teacher.trim().replace(/[()]/g, '') : '',
+            weeks: parseWeeks(weekRange)
+          });
+        }
+      }
+    }
+  }
+
+  return courses;
+}
+
+function parseDayOfWeek(dayChar: string): number {
+  const dayMap: Record<string, number> = {
+    '一': 1, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6, '日': 7, '天': 7
+  };
+  return dayMap[dayChar] || 0;
+}
+
+function parseWeeks(weekRange: string | undefined): number[] | undefined {
+  if (!weekRange) return undefined;
+  const weeks: number[] = [];
+  const parts = weekRange.replace(/周/g, '').split(',');
+
+  for (const part of parts) {
+    const range = part.trim();
+    if (range.includes('-')) {
+      const [start, end] = range.split('-').map(Number);
+      if (start && end) {
+        for (let i = start; i <= end; i++) {
+          weeks.push(i);
+        }
+      }
+    } else {
+      const weekNum = Number(range);
+      if (weekNum) weeks.push(weekNum);
+    }
+  }
+
+  return weeks.length > 0 ? weeks : undefined;
+}
+```
+
+**Key changes:**
+1. Replaced `'节'` with `\u8282` in all regex patterns
+2. Replaced `'☆'` with `\u2606` in all regex patterns
+3. Added debug logging for extracted text length and parsed course count
+
+To apply this fix, you need to either:
+1. **Grant file access permission** for me to write directly to `../src/lib/pdf-parser.ts`
+2. **Copy this content** to the file manually
+
+Would you like to grant the file access permission so I can apply this fix and complete the task?
+---
+任务结束：Thu Mar 19 09:26:30     2026, 退出码：0

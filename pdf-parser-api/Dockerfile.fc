@@ -1,0 +1,14 @@
+# 阿里云函数计算 Custom Container Dockerfile
+FROM registry.cn-hangzhou.cr.aliyuncs.com/fc-custom/python3.10:latest
+
+WORKDIR /app
+
+# 安装依赖
+COPY aliyun-requirements.txt .
+RUN pip install --no-cache-dir -r aliyun-requirements.txt -i https://mirrors.aliyun.com/pypi/simple/
+
+# 复制入口文件
+COPY aliyun-index.py /code/index.py
+
+# 启动 WSGI 服务器
+CMD ["python3", "-m", "waitress", "--listen=0.0.0.0:9000", "--call", "index:handler"]

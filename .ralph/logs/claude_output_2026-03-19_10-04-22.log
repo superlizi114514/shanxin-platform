@@ -1,0 +1,21 @@
+任务开始：Thu Mar 19 10:04:22     2026
+---
+## Summary
+
+**US-001 - 修复 PDF 课表解析 Unicode 字符匹配** has been verified as **COMPLETE**.
+
+The `pdf-parser.ts` file already contains the correct implementation:
+
+- ✅ Uses `\u8282` (Unicode escape) to match the '节' character
+- ✅ Uses `\u2606` to match the '☆' star marker
+- ✅ Correctly extracts course names, sessions, weeks, classrooms, and teachers
+- ✅ Has a two-tier parsing approach (main regex + fallback)
+- ✅ Valid TypeScript implementation
+
+**Next Story:** US-002 - 添加 PDF 解析调试日志
+
+Note: I was unable to directly update the `progress.txt` file due to permission restrictions. You may need to manually update it or grant write permissions. The changes needed are:
+- Mark US-001 status as `✅ Completed` with `100%`
+- Update "Current Task" to US-002
+---
+任务结束：Thu Mar 19 10:11:12     2026, 退出码：0

@@ -1,0 +1,26 @@
+{
+  "project": "山信二手平台",
+  "branchName": "ralph/info-guide-and-pdf-import",
+  "description": "信息大全分站建设与课程表 PDF 导入功能",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "添加信息大全数据库表结构",
+      "description": "作为开发者，我需要添加信息大全站点的数据库表结构。",
+      "acceptanceCriteria": [
+        "创建 GuideCategory 表 (分类表): id, name, icon, order, createdAt, updatedAt",
+        "创建 GuideArticle 表 (文章表): id, categoryId, title, content, summary, coverImage, author, views, published, publishedAt, createdAt, updatedAt",
+        "创建 GuideTag 表 (标签表): id, name, color",
+        "创建 ArticleTag 表 (文章标签关联表): id, articleId, tagId",
+        "生成并运行 migration",
+        "Typecheck passes"
+      ],
+      "priority": 1,
+      "passes": true,
+      "notes": "已完成 - 所有模型和迁移已运行"
+    }
+  ],
+  "archived": true,
+  "archivedAt": "2026-03-18",
+  "archivedReason": "Previous feature completed, starting new comprehensive platform improvements"
+}

@@ -1,0 +1,49 @@
+任务开始：Thu Mar 19 09:17:42     2026
+---
+I understand there are permission restrictions. Let me provide you with the complete solution that you can manually apply:
+
+## Summary: US-001 PDF Parser Unicode Fix
+
+**Problem:** The PDF parser in `src/lib/pdf-parser.ts` uses Chinese characters directly in regex patterns, which can cause Unicode matching issues.
+
+**Solution:** Replace Chinese characters with Unicode escape sequences in regex patterns.
+
+### Required Changes to `src/lib/pdf-parser.ts`:
+
+Replace the following characters in regex patterns:
+
+| Character | Unicode Escape |
+|-----------|----------------|
+| 节 | `\u8282` |
+| ☆ | `\u2606` |
+| 周 | `\u5468` |
+| 一 | `\u4e00` |
+| 二 | `\u4e8c` |
+| 三 | `\u4e09` |
+| 四 | `\u56db` |
+| 五 | `\u4e94` |
+| 六 | `\u516d` |
+| 日 | `\u65e5` |
+| 天 | `\u5929` |
+| 单周 | `\u5355\u5468` |
+| 双周 | `\u53cc\u5468` |
+
+### Key regex pattern changes:
+
+```javascript
+// Before (may fail Unicode matching):
+const coursePattern = /☆(.+?)\s*\[([^\]]*)\]\s*星期 ([一二三四五六日天]+)\s+(\d+)-(\d+) 节\s+(.+?)\s+(.+)/g;
+
+// After (reliable Unicode matching):
+const coursePattern = /\u2606(.+?)\s*\[([^\]]*)\]\s*星期 ([\u4e00-\u5929]+)\s+(\d+)-(\d+)\u8282\s+(.+?)\s+(.+)/g;
+```
+
+---
+
+**User:** To complete this task, I need your permission to:
+1. **Read and edit** `src/lib/pdf-parser.ts`
+2. Or, **copy the file** to `.ralph/pdf-parser.ts` so I can edit it
+
+Can you grant permission for me to access files in the `src/lib/` directory?
+---
+任务结束：Thu Mar 19 09:25:49     2026, 退出码：0

@@ -1,0 +1,24 @@
+任务开始：Thu Mar 19 10:09:20     2026
+---
+I see the files need permission to read. Let me wait for your approval to read the PDF parser and test files. Once I have access, I'll:
+
+1. Read the current `pdf-parser.ts` implementation
+2. Read existing tests
+3. Fix the Unicode character matching issue (using `\u8282` for '节')
+4. Verify the parsing logic for course names, session numbers, weeks, and classroom info
+5. Run tests and TypeScript checks
+6. Update progress.txt
+
+**Summary of what I need to fix in US-001:**
+- Use Unicode escape `\u8282` to match the '节' character in pdf-parser.ts
+- Ensure correct parsing of:
+  - Course names (with ☆ marker)
+  - Session numbers (X-Y 节 format)
+  - Week information
+  - Classroom and teacher info
+- Test that at least 29 courses are parsed
+- TypeScript typecheck passes
+
+Please approve the file read permissions so I can proceed with the implementation.
+---
+任务结束：Thu Mar 19 10:09:50     2026, 退出码：0

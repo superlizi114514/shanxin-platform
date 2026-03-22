@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  pdf-parser:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "7860:7860"
+    environment:
+      - PORT=7860
+    volumes:
+      - ./app.py:/app/app.py
+    restart: unless-stopped
