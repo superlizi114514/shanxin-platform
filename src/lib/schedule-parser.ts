@@ -3,7 +3,23 @@
  * 支持多种格式的课表 PDF 文件解析
  */
 
-import { CourseInput } from "@prisma/client";
+// 课程输入接口
+export interface CourseInput {
+  courseName: string;
+  teacher?: string;
+  classroom?: string;
+  dayOfWeek: number;
+  startPeriod: number;
+  endPeriod: number;
+  weekRange?: string;
+  weekStart?: number;
+  weekEnd?: number;
+  weekType?: string;
+  semesterId?: string;
+  note?: string;
+  color?: string;
+  customData?: any;
+}
 
 export interface ParseResult {
   courses: CourseInput[];
