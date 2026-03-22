@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { parseSchedule } from "@/lib/schedule-parser";
+import { parseScheduleText } from "@/lib/schedule-parser";
 import { findOrCreateClassroom } from "@/lib/pdf-parser";
 import { prisma } from "@/../prisma";
 
