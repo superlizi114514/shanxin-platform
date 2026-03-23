@@ -1,4 +1,3 @@
-import { auth } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 
 // Routes that require authentication
@@ -17,13 +16,13 @@ const protectedRoutes = [
 // Routes that should redirect to home if user is logged in
 const authRoutes = ["/login", "/register", "/forgot-password", "/reset-password", "/verify-email"];
 
-export default auth(async function middleware(request: NextRequest) {
+export function middleware(request: NextRequest) {
   const { nextUrl } = request;
   const pathname = nextUrl.pathname;
 
-  // Get session from NextAuth
-  const session = await auth();
-  const isLoggedIn = !!session?.user;
+  // Get session token from cookies
+  const sessionToken = request.cookies.get("next-auth.session-token")?.value;
+  const isLoggedIn = !!sessionToken;
 
   // Check if trying to access protected route while not logged in
   const isProtectedRoute = protectedRoutes.some((route) =>
@@ -46,7 +45,7 @@ export default auth(async function middleware(request: NextRequest) {
   }
 
   return NextResponse.next();
-});
+}
 
 export const config = {
   matcher: [
