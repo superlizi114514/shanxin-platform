@@ -18,11 +18,11 @@ async function main() {
   console.log('✅ 学校创建成功:', school.name)
 
   // 创建管理员账号
-  const hashedPassword = await bcrypt.hash('lzlz58205820', 10)
+  const hashedPassword = await bcrypt.hash('lzlz58205820', 12)
 
   const admin = await prisma.user.upsert({
     where: { email: '3471023785@qq.com' },
-    update: {},
+    update: { password: hashedPassword, role: 'admin' },
     create: {
       email: '3471023785@qq.com',
       name: '管理员',

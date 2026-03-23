@@ -18,20 +18,26 @@ export default function LoginPage() {
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [loginCount, setLoginCount] = useState(0);
+  const [showCaptcha, setShowCaptcha] = useState(false);
 
-  // 加载记住的邮箱和登录次数
+  // 加载记住的邮箱和失败次数（使用 sessionStorage 记录失败次数）
   useEffect(() => {
     const savedEmail = localStorage.getItem("rememberedEmail");
     const savedRememberMe = localStorage.getItem("rememberMe") === "true";
-    const savedLoginCount = localStorage.getItem("loginCount");
+    const failedCount = sessionStorage.getItem("loginFailedCount");
 
     if (savedRememberMe && savedEmail) {
       setEmail(savedEmail);
       setRememberMe(true);
     }
 
-    if (savedLoginCount) {
-      setLoginCount(parseInt(savedLoginCount, 10));
+    if (failedCount) {
+      const count = parseInt(failedCount, 10);
+      setLoginCount(count);
+      // 失败 3 次及以上显示验证码
+      if (count >= 3) {
+        setShowCaptcha(true);
+      }
     }
   }, []);
 
@@ -73,8 +79,8 @@ export default function LoginPage() {
       return;
     }
 
-    // 前三次登录不需要验证码，第 4 次开始需要
-    if (loginCount >= 3 && !captchaCode) {
+    // 显示验证码时需要输入验证码
+    if (showCaptcha && !captchaCode) {
       setError("请输入验证码");
       return;
     }
@@ -90,7 +96,19 @@ export default function LoginPage() {
 
       if (result?.error) {
         setError(result.error);
+        // 记录失败次数
+        const newCount = loginCount + 1;
+        sessionStorage.setItem("loginFailedCount", newCount.toString());
+        setLoginCount(newCount);
+
+        // 失败 3 次显示验证码
+        if (newCount >= 3 && !showCaptcha) {
+          setShowCaptcha(true);
+        }
       } else {
+        // 登录成功，清除失败记录
+        sessionStorage.removeItem("loginFailedCount");
+
         // 记住邮箱
         if (rememberMe) {
           localStorage.setItem("rememberedEmail", email);
@@ -100,10 +118,6 @@ export default function LoginPage() {
           localStorage.removeItem("rememberMe");
         }
 
-        // 更新登录次数
-        const newCount = loginCount + 1;
-        localStorage.setItem("loginCount", newCount.toString());
-
         // 强制刷新会话并跳转
         await fetch("/api/auth/session", { method: "GET" });
         router.push("/");
@@ -111,6 +125,15 @@ export default function LoginPage() {
       }
     } catch {
       setError("登录失败，请检查邮箱和密码");
+      // 记录失败次数
+      const newCount = loginCount + 1;
+      sessionStorage.setItem("loginFailedCount", newCount.toString());
+      setLoginCount(newCount);
+
+      // 失败 3 次显示验证码
+      if (newCount >= 3 && !showCaptcha) {
+        setShowCaptcha(true);
+      }
     } finally {
       setLoading(false);
     }
@@ -245,7 +268,7 @@ export default function LoginPage() {
                 )}
               </div>
 
-              {loginCount >= 3 && (
+              {showCaptcha && (
                 <CaptchaInput
                   value={captchaCode}
                   onChange={setCaptchaCode}
