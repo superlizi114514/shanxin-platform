@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
+import { z, ZodError } from "zod";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -85,9 +85,10 @@ export async function POST(request: NextRequest) {
       message: "邮箱验证成功",
     });
   } catch (error) {
-    if (error instanceof z.ZodError) {
+    if (error instanceof ZodError) {
+      const messages = error.issues.map(e => e.message).join(', ');
       return NextResponse.json(
-        { error: error.errors[0].message },
+        { error: messages || "Validation failed" },
         { status: 400 }
       );
     }

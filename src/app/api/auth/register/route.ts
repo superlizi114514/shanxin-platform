@@ -102,11 +102,11 @@ export async function POST(request: NextRequest) {
     };
     const user = await prisma.user.create({ data: userData });
 
-    // Create student verification record (only for non-teacher)
-    if (!isTeacher) {
+    // Create student verification record (only for non-teacher with studentId)
+    if (!isTeacher && studentId) {
       await prisma.studentVerification.create({
         data: {
-          studentId: studentId || "",
+          studentId: studentId,
           schoolId: schoolRecord.id,
           major: major || "",
           class: classValue || "",
@@ -126,11 +126,14 @@ export async function POST(request: NextRequest) {
     });
 
     // Send verification email (non-blocking, don't fail registration if email fails)
-    try {
-      await sendVerificationEmail(email, verificationToken);
-    } catch (emailError) {
-      console.error("Failed to send verification email:", emailError);
-      // Continue with registration even if email fails
+    // Only send if RESEND_API_KEY is configured
+    if (process.env.RESEND_API_KEY && process.env.RESEND_API_KEY !== "re_your-resend-api-key") {
+      try {
+        await sendVerificationEmail(email, verificationToken);
+      } catch (emailError) {
+        console.error("Failed to send verification email:", emailError);
+        // Continue with registration even if email fails
+      }
     }
 
     return NextResponse.json(

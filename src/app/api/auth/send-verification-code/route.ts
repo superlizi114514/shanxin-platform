@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
+import { z, ZodError } from "zod";
 import crypto from "crypto";
 import { sendEmailVerificationCode } from "@/lib/email";
 import { prisma } from "@/lib/prisma";
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
       token, // 返回 token 用于验证
     });
   } catch (error) {
-    if (error instanceof z.ZodError) {
+    if (error instanceof ZodError) {
       const messages = error.issues.map(e => e.message).join(', ');
       return NextResponse.json(
         { error: messages || "Validation failed" },

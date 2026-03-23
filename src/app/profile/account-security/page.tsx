@@ -61,6 +61,13 @@ export default function AccountSecurityPage() {
     }
   }, [countdown]);
 
+  useEffect(() => {
+    if (emailCountdown > 0) {
+      const timer = setTimeout(() => setEmailCountdown(emailCountdown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [emailCountdown]);
+
   const fetchSecurityInfo = async () => {
     try {
       const response = await fetch("/api/account/security");
@@ -172,6 +179,82 @@ export default function AccountSecurityPage() {
     }
   };
 
+  const handleSendEmailCode = async () => {
+    if (!bindEmail) {
+      alert("请输入邮箱地址");
+      return;
+    }
+
+    // 邮箱格式验证
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(bindEmail)) {
+      alert("请输入正确的邮箱地址");
+      return;
+    }
+
+    setSendingEmailCode(true);
+    try {
+      const response = await fetch("/api/auth/send-verification-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: bindEmail }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setVerifyToken(data.token);
+        setEmailCountdown(60);
+        alert("验证码已发送，请检查邮箱");
+      } else {
+        alert(data.error || "发送失败");
+      }
+    } catch (error) {
+      console.error("Failed to send email code:", error);
+      alert("发送失败，请重试");
+    } finally {
+      setSendingEmailCode(false);
+    }
+  };
+
+  const handleVerifyEmail = async () => {
+    if (!emailCode) {
+      alert("请输入验证码");
+      return;
+    }
+
+    if (!verifyToken) {
+      alert("请先获取验证码");
+      return;
+    }
+
+    setBindingEmail(true);
+    try {
+      const response = await fetch("/api/profile/verify-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: emailCode, email: bindEmail }),
+      });
+
+      if (response.ok) {
+        await updateSession();
+        fetchSecurityInfo();
+        setShowEmailModal(false);
+        setEmailCode("");
+        setBindEmail("");
+        setVerifyToken(null);
+        alert("邮箱绑定成功");
+      } else {
+        const data = await response.json();
+        alert(data.error || "验证失败");
+      }
+    } catch (error) {
+      console.error("Failed to verify email:", error);
+      alert("验证失败，请重试");
+    } finally {
+      setBindingEmail(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
@@ -223,7 +306,7 @@ export default function AccountSecurityPage() {
                 </div>
                 <div>
                   <h3 className="font-medium text-gray-900">邮箱</h3>
-                  <p className="text-sm text-gray-500">{user?.email}</p>
+                  <p className="text-sm text-gray-500">{user?.email || "未绑定"}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -242,6 +325,12 @@ export default function AccountSecurityPage() {
                     未验证
                   </span>
                 )}
+                <button
+                  onClick={() => setShowEmailModal(true)}
+                  className="px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-medium"
+                >
+                  {user?.email ? "更换" : "绑定"}
+                </button>
               </div>
             </div>
           </div>
@@ -464,6 +553,81 @@ export default function AccountSecurityPage() {
                 className="flex-1 px-4 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {bindingPhone ? "绑定中..." : "确认绑定"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Email Modal */}
+      {showEmailModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-gray-900">
+                {user?.email ? "更换邮箱" : "绑定邮箱"}
+              </h2>
+              <button
+                onClick={() => setShowEmailModal(false)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  邮箱地址
+                </label>
+                <input
+                  type="email"
+                  value={bindEmail}
+                  onChange={(e) => setBindEmail(e.target.value)}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="请输入邮箱地址"
+                />
+              </div>
+
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    验证码
+                  </label>
+                  <input
+                    type="text"
+                    value={emailCode}
+                    onChange={(e) => setEmailCode(e.target.value)}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="请输入验证码"
+                    maxLength={6}
+                  />
+                </div>
+                <button
+                  onClick={handleSendEmailCode}
+                  disabled={sendingEmailCode || emailCountdown > 0}
+                  className="px-4 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-medium self-end disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                >
+                  {emailCountdown > 0 ? `${emailCountdown}秒后重试` : sendingEmailCode ? "发送中..." : "发送验证码"}
+                </button>
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setShowEmailModal(false)}
+                className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-medium"
+              >
+                取消
+              </button>
+              <button
+                onClick={handleVerifyEmail}
+                disabled={bindingEmail}
+                className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {bindingEmail ? "验证中..." : "确认绑定"}
               </button>
             </div>
           </div>
