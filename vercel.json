@@ -18,7 +18,7 @@
     "GITHUB_CLIENT_ID": "",
     "GITHUB_CLIENT_SECRET": "",
     "PDF_PARSER_API_URL": "https://superlizi-sxhh.hf.space",
-    "NEXT_PUBLIC_AMAP_KEY": "your-amap-api-key",
-    "NEXT_PUBLIC_AMAP_SECURITY_CODE": "your-amap-security-code"
+    "NEXT_PUBLIC_AMAP_KEY": "07d096fffe2fec34d5848fc63a062faf",
+    "NEXT_PUBLIC_AMAP_SECURITY_CODE": "16df8e80ac4eba44490107d57f6cf25a"
   }
 }
