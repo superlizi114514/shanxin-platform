@@ -435,9 +435,15 @@ export default function AdminMerchantsPage() {
                     </div>
                   )}
                   <div className="mt-4 flex gap-2">
+        <Link
+                      href={`/admin/merchants/${merchant.id}`}
+                      className="flex-1 px-3 py-2 bg-blue-600 text-white text-center rounded hover:bg-blue-700 text-sm"
+                    >
+                      详情
+                    </Link>
                     <button
                       onClick={() => handleOpenEdit(merchant)}
-                      className="flex-1 px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+                      className="flex-1 px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
                     >
                       编辑
                     </button>

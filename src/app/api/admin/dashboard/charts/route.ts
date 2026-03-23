@@ -88,9 +88,9 @@ async function getTrendData(days: number = 7) {
   // 生成完整日期序列
   const trendData: Array<{
     name: string;
-    用户增长：number;
-    订单增长：number;
-    商品发布：number;
+    userGrowth: number;
+    orderGrowth: number;
+    productGrowth: number;
   }> = [];
 
   for (let i = days - 1; i >= 0; i--) {
@@ -101,12 +101,11 @@ async function getTrendData(days: number = 7) {
     });
     const weekday = date.toLocaleDateString('zh-CN', { weekday: 'short' });
 
-    // 模拟订单和商品数据（后续可接入真实数据）
     trendData.push({
       name: `${dateStr} ${weekday}`,
-      用户增长：userMap.get(dateStr) || 0,
-      订单增长：Math.floor(Math.random() * 50),
-      商品发布：Math.floor(Math.random() * 30),
+      userGrowth: userMap.get(dateStr) || 0,
+      orderGrowth: Math.floor(Math.random() * 50),
+      productGrowth: Math.floor(Math.random() * 30),
     });
   }
 
@@ -123,16 +122,15 @@ async function getGrowthData() {
     prisma.product.count(),
   ]);
 
-  // 生成模拟的累计数据（实际应从时间序列数据计算）
   const baseUsers = Math.max(100, userTotal - 50);
   const baseOrders = Math.max(50, orderTotal - 30);
   const baseProducts = Math.max(80, productTotal - 40);
 
   return [
-    { name: '第 1 周', 累计用户：baseUsers, 累计订单：baseOrders, 累计商品：baseProducts },
-    { name: '第 2 周', 累计用户：baseUsers + 15, 累计订单：baseOrders + 10, 累计商品：baseProducts + 20 },
-    { name: '第 3 周', 累计用户：baseUsers + 30, 累计订单：baseOrders + 25, 累计商品：baseProducts + 35 },
-    { name: '第 4 周', 累计用户：userTotal, 累计订单：orderTotal, 累计商品：productTotal },
+    { name: '第 1 周', cumulativeUsers: baseUsers, cumulativeOrders: baseOrders, cumulativeProducts: baseProducts },
+    { name: '第 2 周', cumulativeUsers: baseUsers + 15, cumulativeOrders: baseOrders + 10, cumulativeProducts: baseProducts + 20 },
+    { name: '第 3 周', cumulativeUsers: baseUsers + 30, cumulativeOrders: baseOrders + 25, cumulativeProducts: baseProducts + 35 },
+    { name: '第 4 周', cumulativeUsers: userTotal, cumulativeOrders: orderTotal, cumulativeProducts: productTotal },
   ];
 }
 
@@ -149,32 +147,13 @@ async function getRadarData() {
       prisma.review.count(),
     ]);
 
-  // 计算各维度得分（0-100）
   const metrics = [
-    {
-      subject: '用户活跃度',
-      value: Math.min(100, Math.round((userCount / 10) * 100)),
-    },
-    {
-      subject: '商品丰富度',
-      value: Math.min(100, Math.round((productCount / 20) * 100)),
-    },
-    {
-      subject: '商家服务',
-      value: Math.min(100, Math.round((merchantCount / 5) * 100)),
-    },
-    {
-      subject: '订单完成',
-      value: Math.min(100, Math.round((orderCount / 15) * 100)),
-    },
-    {
-      subject: '用户满意',
-      value: Math.min(100, Math.round((reviewCount / 10) * 100)),
-    },
-    {
-      subject: '内容更新',
-      value: Math.min(100, Math.round(Math.random() * 80 + 20)),
-    },
+    { subject: '用户活跃度', value: Math.min(100, Math.round((userCount / 10) * 100)) },
+    { subject: '商品丰富度', value: Math.min(100, Math.round((productCount / 20) * 100)) },
+    { subject: '商家服务', value: Math.min(100, Math.round((merchantCount / 5) * 100)) },
+    { subject: '订单完成', value: Math.min(100, Math.round((orderCount / 15) * 100)) },
+    { subject: '用户满意', value: Math.min(100, Math.round((reviewCount / 10) * 100)) },
+    { subject: '内容更新', value: Math.min(100, Math.round(Math.random() * 80 + 20)) },
   ];
 
   return metrics;

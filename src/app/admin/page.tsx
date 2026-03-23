@@ -168,47 +168,20 @@ export default function AdminHomePage() {
   const COLORS = ["#3B82F6", "#10B981", "#8B5CF6", "#F59E0B", "#EF4444", "#06B6D4", "#EC4899", "#6366F1"];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <Link
-              href="/"
-              className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors cursor-pointer group"
-            >
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform">
-                <Shield className="w-5 h-5 text-white" />
-              </div>
-              <span className="font-medium">返回总站</span>
-            </Link>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-full text-sm font-medium">
-                <Shield className="w-4 h-4" />
-                管理员
-              </div>
-              {session?.user?.name && (
-                <span className="text-sm text-slate-600 hidden sm:block">{session.user.name}</span>
-              )}
-            </div>
+    <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
+      <div className="max-w-7xl mx-auto w-full">
+      {/* Welcome Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/25">
+            <LayoutDashboard className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-slate-900">欢迎回来，管理员！</h2>
+            <p className="text-slate-600 text-sm">企业级数据可视化仪表板</p>
           </div>
         </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Welcome Section */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/25">
-              <LayoutDashboard className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-slate-900">欢迎回来，管理员！</h2>
-              <p className="text-slate-600 text-sm">企业级数据可视化仪表板</p>
-            </div>
-          </div>
-        </div>
+      </div>
 
         {/* Statistics Cards */}
         <div className="mb-10">
@@ -504,7 +477,7 @@ export default function AdminHomePage() {
             </Link>
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </main>
   );
 }
