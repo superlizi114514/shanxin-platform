@@ -8,7 +8,7 @@
   "regions": ["hnd1"],
   "env": {
     "NEXT_PUBLIC_SITE_URL": "https://sxhh.online",
-    "DATABASE_URL": "postgres://user:password@hostname.vercel-pg.com:5432/dbname?pgbouncer=true",
+    "DATABASE_URL": "postgresql://neondb_owner:npg_KWYCLUOv56QH@ep-still-water-a1r11qld-pooler.ap-southeast-1.aws.neon.tech/neondb?channel_binding=require&sslmode=require",
     "AUTH_SECRET": "VGhpc0lzQVNlY3JldEtleUZvckRldkxvY2FsaG9zdDEyMzQ1Njc4OQ==",
     "NEXTAUTH_URL": "https://sxhh.online",
     "RESEND_API_KEY": "",
@@ -17,6 +17,8 @@
     "GOOGLE_CLIENT_SECRET": "",
     "GITHUB_CLIENT_ID": "",
     "GITHUB_CLIENT_SECRET": "",
-    "PDF_PARSER_API_URL": "https://superlizi-sxhh.hf.space"
+    "PDF_PARSER_API_URL": "https://superlizi-sxhh.hf.space",
+    "NEXT_PUBLIC_AMAP_KEY": "your-amap-api-key",
+    "NEXT_PUBLIC_AMAP_SECURITY_CODE": "your-amap-security-code"
   }
 }
