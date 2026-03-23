@@ -4,12 +4,15 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 const APP_URL = process.env.NEXTAUTH_URL || "http://localhost:3000";
 
+// 发件人配置 - 从环境变量读取，默认使用 Resend 提供的默认发件人
+const FROM_EMAIL = process.env.FROM_EMAIL || "山信二手平台 <onboarding@resend.dev>";
+
 export async function sendVerificationEmail(email: string, verificationToken: string) {
   const verificationUrl = `${APP_URL}/verify-email?token=${verificationToken}`;
 
   try {
     const { data, error } = await resend.emails.send({
-      from: "山信二手平台 <noreply@yourdomain.com>",
+      from: FROM_EMAIL,
       to: [email],
       subject: "验证您的邮箱 - 山信二手平台",
       html: `
@@ -46,7 +49,7 @@ export async function sendPasswordResetEmail(email: string, resetToken: string) 
 
   try {
     const { data, error } = await resend.emails.send({
-      from: "山信二手平台 <noreply@yourdomain.com>",
+      from: FROM_EMAIL,
       to: [email],
       subject: "重置密码 - 山信二手平台",
       html: `
@@ -84,7 +87,7 @@ export async function sendPasswordResetEmail(email: string, resetToken: string) 
 export async function sendEmailVerificationCode(email: string, code: string) {
   try {
     const { data, error } = await resend.emails.send({
-      from: "山信二手平台 <noreply@yourdomain.com>",
+      from: FROM_EMAIL,
       to: [email],
       subject: "邮箱验证码 - 山信二手平台",
       html: `

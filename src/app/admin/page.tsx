@@ -131,6 +131,22 @@ export default function AdminHomePage() {
       iconBg: "bg-blue-100",
     },
     {
+      title: "兼职审核",
+      description: "审核用户发布的兼职信息",
+      href: "/admin/part-time-jobs",
+      icon: Shield,
+      gradient: "from-teal-500 to-teal-600",
+      iconBg: "bg-teal-100",
+    },
+    {
+      title: "点评审核",
+      description: "审核商家点评内容",
+      href: "/admin/merchant-reviews",
+      icon: FileText,
+      gradient: "from-cyan-500 to-cyan-600",
+      iconBg: "bg-cyan-100",
+    },
+    {
       title: "新闻管理",
       description: "发布校园新闻、通知公告、活动资讯",
       href: "/admin/news",
@@ -453,6 +469,20 @@ export default function AdminHomePage() {
             >
               <Store className="w-4 h-4" />
               管理商家
+            </Link>
+            <Link
+              href="/admin/part-time-jobs"
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-lg hover:from-teal-600 hover:to-teal-700 text-sm font-medium shadow-md shadow-teal-500/25 hover:shadow-lg hover:shadow-teal-500/30 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
+            >
+              <Shield className="w-4 h-4" />
+              兼职审核
+            </Link>
+            <Link
+              href="/admin/merchant-reviews"
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white rounded-lg hover:from-cyan-600 hover:to-cyan-700 text-sm font-medium shadow-md shadow-cyan-500/25 hover:shadow-lg hover:shadow-cyan-500/30 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
+            >
+              <FileText className="w-4 h-4" />
+              点评审核
             </Link>
             <Link
               href="/admin/news"
