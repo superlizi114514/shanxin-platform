@@ -124,8 +124,13 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Send verification email
-    await sendVerificationEmail(email, verificationToken);
+    // Send verification email (non-blocking, don't fail registration if email fails)
+    try {
+      await sendVerificationEmail(email, verificationToken);
+    } catch (emailError) {
+      console.error("Failed to send verification email:", emailError);
+      // Continue with registration even if email fails
+    }
 
     return NextResponse.json(
       {
