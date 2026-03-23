@@ -1,6 +1,9 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// 仅在 RESEND_API_KEY 存在时初始化 Resend 客户端
+const resend = process.env.RESEND_API_KEY && process.env.RESEND_API_KEY !== "re_your-resend-api-key"
+  ? new Resend(process.env.RESEND_API_KEY)
+  : null;
 
 const APP_URL = process.env.NEXTAUTH_URL || "http://localhost:3000";
 
@@ -8,6 +11,12 @@ const APP_URL = process.env.NEXTAUTH_URL || "http://localhost:3000";
 const FROM_EMAIL = process.env.FROM_EMAIL || "山信二手平台 <onboarding@resend.dev>";
 
 export async function sendVerificationEmail(email: string, verificationToken: string) {
+  // 如果 Resend 客户端未初始化，直接返回
+  if (!resend) {
+    console.warn("Resend not configured, skipping email verification");
+    return { success: false, error: "Resend not configured" };
+  }
+
   const verificationUrl = `${APP_URL}/verify-email?token=${verificationToken}`;
 
   try {
@@ -45,6 +54,12 @@ export async function sendVerificationEmail(email: string, verificationToken: st
 }
 
 export async function sendPasswordResetEmail(email: string, resetToken: string) {
+  // 如果 Resend 客户端未初始化，直接返回
+  if (!resend) {
+    console.warn("Resend not configured, skipping password reset email");
+    return { success: false, error: "Resend not configured" };
+  }
+
   const resetUrl = `${APP_URL}/reset-password?token=${resetToken}`;
 
   try {
@@ -85,6 +100,12 @@ export async function sendPasswordResetEmail(email: string, resetToken: string) 
  * 发送邮箱验证码
  */
 export async function sendEmailVerificationCode(email: string, code: string) {
+  // 如果 Resend 客户端未初始化，直接返回
+  if (!resend) {
+    console.warn("Resend not configured, skipping verification code email");
+    return { success: false, error: "Resend not configured" };
+  }
+
   try {
     const { data, error } = await resend.emails.send({
       from: FROM_EMAIL,
