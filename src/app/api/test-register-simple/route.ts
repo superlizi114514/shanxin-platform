@@ -3,9 +3,16 @@ import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 
+/**
+ * 简化版注册测试 - 逐步排查问题
+ */
 export async function POST(request: NextRequest) {
+  const errors: string[] = [];
+  const steps: string[] = [];
+
   try {
-    // 1. 测试基础解析
+    // Step 1: 解析 JSON
+    steps.push("1_parsing");
     const body = await request.json();
     const { email, password } = body;
 
@@ -13,24 +20,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing email or password" }, { status: 400 });
     }
 
-    // 2. 测试 bcrypt
-    console.log("[test-register] Starting bcrypt hash...");
+    // Step 2: 测试 bcrypt
+    steps.push("2_bcrypt_start");
     const hashedPassword = await bcrypt.hash(password, 12);
-    console.log("[test-register] Bcrypt hash completed");
+    steps.push("2_bcrypt_done");
 
-    // 3. 测试 crypto
-    console.log("[test-register] Generating random token...");
+    // Step 3: 测试 crypto
+    steps.push("3_crypto_start");
     const token = crypto.randomBytes(32).toString("hex");
-    console.log("[test-register] Token generated:", token.substring(0, 16) + "...");
+    steps.push("3_crypto_done");
 
-    // 4. 测试简单的 Prisma 查询
-    console.log("[test-register] Testing Prisma connection...");
-    const userCount = await prisma.user.count();
-    console.log("[test-register] User count:", userCount);
+    // Step 4: 测试 Prisma 查询
+    steps.push("4_prisma_start");
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (existingUser) {
+      return NextResponse.json({ error: "User exists" }, { status: 400 });
+    }
+    steps.push("4_prisma_done");
 
-    // 5. 测试创建用户
-    console.log("[test-register] Creating test user...");
-    const testEmail = `test_${Date.now()}@test.com`;
+    // Step 5: 测试创建用户
+    steps.push("5_create_start");
+    const testEmail = `test_${Date.now()}_${Math.random().toString(36).substring(7)}@test.com`;
     const user = await prisma.user.create({
       data: {
         email: testEmail,
@@ -39,21 +49,23 @@ export async function POST(request: NextRequest) {
         isTeacher: false,
       },
     });
-    console.log("[test-register] User created:", user.id);
+    steps.push("5_create_done");
 
     return NextResponse.json({
       success: true,
-      message: "All steps passed",
       userId: user.id,
       tokenLength: token.length,
+      steps,
     });
+
   } catch (error: any) {
-    console.error("[test-register] ERROR at step:", error);
     return NextResponse.json(
       {
         error: "Test failed",
         message: error?.message || String(error),
-        stack: error?.stack
+        stack: error?.stack,
+        lastStep: steps[steps.length - 1],
+        allSteps: steps,
       },
       { status: 500 }
     );
