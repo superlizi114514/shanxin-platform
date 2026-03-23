@@ -101,13 +101,22 @@ export default function RegisterPage() {
     return true;
   };
 
+  // 格式化手机号：138 8888 8888
+  const formatPhone = (value: string): string => {
+    const numbers = value.replace(/\D/g, '');
+    if (numbers.length <= 3) return numbers;
+    if (numbers.length <= 7) return `${numbers.slice(0, 3)} ${numbers.slice(3)}`;
+    return `${numbers.slice(0, 3)} ${numbers.slice(3, 7)} ${numbers.slice(7, 11)}`;
+  };
+
   const validatePhone = (value: string): boolean => {
     const phoneRegex = /^1[3-9]\d{9}$/;
-    if (!value) {
+    const cleanedValue = value.replace(/\s/g, '');
+    if (!cleanedValue) {
       setPhoneError("请输入手机号");
       return false;
     }
-    if (!phoneRegex.test(value)) {
+    if (!phoneRegex.test(cleanedValue)) {
       setPhoneError("手机号格式不正确");
       return false;
     }
@@ -129,13 +138,6 @@ export default function RegisterPage() {
     return true;
   };
 
-  // 手机号格式化（3-4-4 格式）
-  const formatPhone = (value: string): string => {
-    const cleaned = value.replace(/\D/g, "");
-    if (cleaned.length <= 3) return cleaned;
-    if (cleaned.length <= 7) return `${cleaned.slice(0, 3)} ${cleaned.slice(3)}`;
-    return `${cleaned.slice(0, 3)} ${cleaned.slice(3, 7)} ${cleaned.slice(7, 11)}`;
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
