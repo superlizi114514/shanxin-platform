@@ -30,7 +30,7 @@ export const registerSchema = z.object({
     .string()
     .min(1, "Phone number is required")
     .max(20, "Phone number too long")
-    .regex(/^1[3-9]\d{9}$/, "Invalid phone number format"),
+    .refine((val) => /^1[3-9]\d{9}$/.test(val.replace(/\s/g, "")), "Invalid phone number format"),
   school: z
     .string()
     .max(100, "校区名称过长")
