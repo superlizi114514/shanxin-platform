@@ -4,7 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { MapPin } from "lucide-react";
+import { MapPin, HelpCircle } from "lucide-react";
+import { ScheduleExportCard } from "@/components/guide/ScheduleExportCard";
 
 interface Course {
   id: string;
@@ -651,22 +652,36 @@ export default function SchedulePage() {
           </div>
         )}
 
-        {/* Empty State */}
         {courses.length === 0 && (
-          <div className="bg-white rounded-lg shadow-md p-12 text-center">
+          <div className="bg-white rounded-lg shadow-md p-12 text-center mb-6">
             <div className="text-6xl mb-4">📚</div>
             <h2 className="text-xl font-semibold text-gray-900 mb-2">
               暂无课表数据
             </h2>
             <p className="text-gray-600 mb-6">
-              从教务系统导入或手动添加课程
+              从教务系统导出课表 PDF 或手动添加课程
             </p>
-            <Link
-              href="/schedule/import"
-              className="inline-flex px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-            >
-              导入课表
-            </Link>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center max-w-md mx-auto">
+              <Link
+                href="/schedule/import"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium"
+              >
+                导入课表
+              </Link>
+              <Link
+                href="/guide/export-schedule"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 font-medium"
+              >
+                查看导出教程
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* 帮助卡片 - 在有课程时显示 */}
+        {courses.length > 0 && (
+          <div className="mb-6">
+            <ScheduleExportCard variant="compact" />
           </div>
         )}
 

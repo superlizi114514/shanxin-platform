@@ -1,142 +1,178 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, Download, Upload, FileText, CheckCircle, ExternalLink } from "lucide-react";
 
-export default function ScheduleExportGuidePage() {
+export default function ExportScheduleGuidePage() {
   const router = useRouter();
 
   const steps = [
     {
+      icon: ExternalLink,
       title: "登录教务系统",
       description: "访问山东信息职业技术学院教务系统",
       link: "http://jw.sdcit.edu.cn/jwglxt/xtgl/login_slogin.html",
-      linkText: "点击进入教务系统",
+      linkText: "点击登录教务系统",
     },
     {
-      title: "进入个人课表",
-      description: "登录后，点击左侧菜单「课表查询」->「个人课表查询」",
+      icon: FileText,
+      title: "进入课表查询",
+      description: "登录成功后，在左侧菜单栏找到并点击「个人课表查询」",
     },
     {
+      icon: Download,
       title: "选择学年学期",
-      description: "在页面上方选择当前学年和学期，然后点击「查询」",
+      description: "在课表查询页面，选择当前所在的学年和学期（如 2025-2026 学年 第 2 学期）",
     },
     {
-      title: "导出 PDF 或 Excel",
-      description: "点击页面上的「导出」按钮，选择 PDF 或 Excel 格式保存文件",
+      icon: FileText,
+      title: "导出 PDF 课表",
+      description: "点击「输出 PDF」或「打印」按钮，将课表保存为 PDF 文件到本地",
     },
     {
+      icon: Upload,
       title: "返回平台导入",
-      description: "回到本平台，在课表导入页面上传刚才导出的文件",
-      link: "/schedule/import",
-      linkText: "前往导入课表",
+      description: "回到山信黑红榜平台，在课表导入页面上传刚才导出的 PDF 文件",
+      action: (
+        <Link
+          href="/schedule/import"
+          className="inline-flex items-center gap-2 mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium"
+        >
+          <Upload className="w-4 h-4" />
+          去导入课表
+        </Link>
+      ),
     },
   ];
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
+      {/* 头部导航 */}
+      <div className="bg-white border-b">
+        <div className="max-w-4xl mx-auto px-4 py-4">
           <button
             onClick={() => router.back()}
-            className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 mb-4 transition-colors"
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
+            <ArrowLeft className="w-4 h-4" />
             返回
           </button>
-          <h1 className="text-3xl font-bold text-gray-900">📚 课表导出教程</h1>
-          <p className="mt-2 text-gray-600">
-            从教务系统导出课表，然后在平台导入
+        </div>
+      </div>
+
+      {/* 主要内容 */}
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        {/* 标题区 */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg shadow-blue-500/25 mb-4">
+            <Download className="w-8 h-8 text-white" />
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">课表导出教程</h1>
+          <p className="text-gray-600">
+            按照以下步骤从教务系统导出课表，然后导入到平台
           </p>
         </div>
 
-        {/* Steps */}
-        <div className="bg-white rounded-xl shadow-md p-8 mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
-            <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
-            导出流程（5 步）
-          </h2>
-
-          <div className="space-y-6">
-            {steps.map((step, index) => (
-              <div key={index} className="flex gap-4">
-                <div className="flex-shrink-0">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white font-bold flex items-center justify-center text-lg shadow-md">
-                    {index + 1}
-                  </div>
-                  {index < steps.length - 1 && (
-                    <div className="w-0.5 h-full bg-blue-100 mx-auto mt-2"></div>
-                  )}
-                </div>
-                <div className="flex-1 pb-6">
-                  <h3 className="font-semibold text-gray-900 text-lg">{step.title}</h3>
-                  <p className="text-gray-600 mt-1">{step.description}</p>
-                  {step.link && (
-                    <Link
-                      href={step.link}
-                      className="inline-flex items-center gap-2 mt-3 text-blue-600 hover:text-blue-800 font-medium transition-colors"
-                      target={step.link.startsWith("http") ? "_blank" : undefined}
-                      rel={step.link.startsWith("http") ? "noopener noreferrer" : undefined}
-                    >
-                      {step.linkText}
-                      {step.link.startsWith("http") && (
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                        </svg>
-                      )}
-                    </Link>
-                  )}
-                </div>
-              </div>
-            ))}
+        {/* 快速跳转 */}
+        <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-6 mb-8 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold mb-1">直接从教务系统导出</h2>
+              <p className="text-blue-100 text-sm">已有 PDF 课表文件？直接导入</p>
+            </div>
+            <div className="flex gap-3">
+              <a
+                href="http://jw.sdcit.edu.cn/jwglxt/xtgl/login_slogin.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-lg hover:bg-white/30 transition-colors font-medium"
+              >
+                <ExternalLink className="w-4 h-4" />
+                教务系统
+              </a>
+              <Link
+                href="/schedule/import"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-white text-blue-600 rounded-lg hover:bg-blue-50 transition-colors font-medium"
+              >
+                <Upload className="w-4 h-4" />
+                导入课表
+              </Link>
+            </div>
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div className="grid md:grid-cols-2 gap-4 mb-6">
-          <Link
-            href="/schedule/import"
-            className="p-6 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl shadow-md hover:shadow-lg transition-all"
-          >
-            <h3 className="font-semibold text-lg mb-2">📥 导入课表</h3>
-            <p className="text-blue-100 text-sm">上传导出的 PDF 或 Excel 文件</p>
-          </Link>
-          <Link
-            href="/schedule"
-            className="p-6 bg-white text-gray-900 rounded-xl shadow-md border border-gray-200 hover:shadow-lg transition-all"
-          >
-            <h3 className="font-semibold text-lg mb-2">📅 查看课表</h3>
-            <p className="text-gray-600 text-sm">查看已导入的课程安排</p>
-          </Link>
+        {/* 步骤列表 */}
+        <div className="space-y-4">
+          {steps.map((step, index) => (
+            <div
+              key={index}
+              className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
+            >
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                    {index + 1}
+                  </div>
+                </div>
+
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <step.icon className="w-5 h-5 text-blue-600" />
+                    <h3 className="text-lg font-semibold text-gray-900">{step.title}</h3>
+                  </div>
+                  <p className="text-gray-600 mb-3">{step.description}</p>
+
+                  {step.link && (
+                    <a
+                      href={step.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      {step.linkText}
+                    </a>
+                  )}
+
+                  {step.action && step.action}
+                </div>
+
+                <div className="flex-shrink-0">
+                  <CheckCircle className="w-6 h-6 text-green-500 opacity-50" />
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
 
-        {/* Tips */}
-        <div className="bg-blue-50 rounded-xl p-6">
-          <h3 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
-            <svg className="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-            </svg>
-            温馨提示
-          </h3>
-          <ul className="text-blue-800 text-sm space-y-2">
-            <li className="flex items-start gap-2">
-              <span className="text-blue-500 mt-0.5">•</span>
-              <span>建议使用 <strong>Excel 格式</strong> 导出，识别更准确</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-blue-500 mt-0.5">•</span>
-              <span>如果教务系统无法导出，可以截图后使用文字识别工具</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-blue-500 mt-0.5">•</span>
-              <span>遇到问题可在导入页使用「粘贴课表数据」功能</span>
-            </li>
-          </ul>
+        {/* 底部提示 */}
+        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-xl p-4">
+          <div className="flex items-start gap-3">
+            <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+              <span className="text-blue-600 text-sm font-bold">!</span>
+            </div>
+            <div>
+              <h4 className="font-medium text-blue-900 mb-1">温馨提示</h4>
+              <ul className="text-sm text-blue-700 space-y-1">
+                <li>• PDF 课表文件请保持清晰，避免模糊影响识别</li>
+                <li>• 如果识别失败，可以尝试手动输入课表信息</li>
+                <li>• 支持导入多个学期的课表数据</li>
+                <li>• 遇到问题可在「我的 - 反馈建议」中联系我们</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        {/* 回到课表页 */}
+        <div className="mt-6 text-center">
+          <Link
+            href="/schedule"
+            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            返回课表页面
+          </Link>
         </div>
       </div>
     </div>

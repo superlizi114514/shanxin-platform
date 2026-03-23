@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { Skeleton } from "@/components/Skeleton";
 
 interface PartTimeJob {
   id: string;
@@ -147,9 +148,31 @@ export default function PartTimeJobsPage() {
       {/* 内容区 */}
       <div className="max-w-7xl mx-auto px-4 py-6">
         {loading ? (
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            <p className="mt-4 text-gray-500">加载中...</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="bg-white rounded-xl border border-gray-200 p-4">
+                <div className="relative h-40 -mx-4 -mt-4 mb-3 overflow-hidden rounded-t-xl">
+                  <Skeleton className="w-full h-full" />
+                </div>
+                <Skeleton className="h-5 w-3/4" />
+                <div className="space-y-2 mt-2">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-2/3" />
+                </div>
+                <div className="flex items-center gap-2 mt-3">
+                  <Skeleton className="h-5 w-12 rounded-full" />
+                  <Skeleton className="h-5 w-20 rounded-full" />
+                </div>
+                <div className="mt-3 space-y-1">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-4 w-full" />
+                </div>
+                <div className="flex items-center justify-between mt-4 pt-3 border-t">
+                  <Skeleton className="h-3 w-16" />
+                  <Skeleton className="h-3 w-16" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : jobs.length === 0 ? (
           <div className="text-center py-12">

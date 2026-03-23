@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
 import MobileNavbar from "@/components/MobileNavbar";
+import { Skeleton } from "@/components/Skeleton";
 
 interface Product {
   id: string;
@@ -229,9 +230,27 @@ export default function ProductsPage() {
 
         {/* Products Grid - Mobile optimized */}
         {loading ? (
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-blue-600"></div>
-            <p className="mt-4 text-sm sm:text-base text-gray-600">加载中...</p>
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="group relative bg-white/80 backdrop-blur-lg rounded-xl sm:rounded-2xl shadow-lg overflow-hidden border border-white/20">
+                <div className="aspect-square bg-gradient-to-br from-gray-100 to-gray-200 relative overflow-hidden">
+                  <Skeleton className="w-full h-full" />
+                </div>
+                <div className="p-2 sm:p-3 md:p-4 space-y-2">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-3 w-full" />
+                  <Skeleton className="h-3 w-2/3" />
+                  <div className="flex items-center justify-between mt-2">
+                    <Skeleton className="h-5 w-20" />
+                    <Skeleton className="h-4 w-16 rounded-full" />
+                  </div>
+                  <div className="flex items-center justify-between mt-1">
+                    <Skeleton className="h-3 w-12" />
+                    <Skeleton className="h-3 w-12" />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : products.length === 0 ? (
           <div className="bg-white/80 backdrop-blur-lg rounded-xl sm:rounded-2xl shadow-xl p-8 sm:p-12 text-center border border-white/20">
