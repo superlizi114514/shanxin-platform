@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/../prisma";
 import Workbook from "exceljs";
-import { parseSchedulePDF, findOrCreateClassroom } from "@/lib/pdf-parser";
+import { findOrCreateClassroom } from "@/lib/pdf-parser";
 import { parseDayOfWeek, parsePeriod, parseWeekRange } from "@/lib/course-parsing";
+
+const PDF_PARSER_API_URL = process.env.PDF_PARSER_API_URL || 'https://superlizi-sxhh.hf.space';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB limit
 const DEBUG = process.env.NODE_ENV === 'development';
@@ -98,13 +100,63 @@ export async function POST(request: NextRequest) {
       }
 
       if (DEBUG) {
-        console.log("开始解析 PDF 文件...");
+        console.log("开始调用云端 PDF 解析 API...");
       }
-      courses = await parseSchedulePDF(file, userId, arrayBuffer);
+
+      // 调用云端 Hugging Face Spaces API
+      const hfFormData = new FormData();
+      hfFormData.append('file', file);
+
+      const hfResponse = await fetch(`${PDF_PARSER_API_URL}/parse`, {
+        method: 'POST',
+        body: hfFormData,
+      });
+
+      if (!hfResponse.ok) {
+        throw new Error(`云端 API 返回错误：${hfResponse.status}`);
+      }
+
+      const hfResult = await hfResponse.json();
+
+      if (!hfResult.success || !hfResult.courses) {
+        throw new Error(hfResult.error || '解析失败');
+      }
+
+      // 调试日志：输出 HF API 返回的课程数量
+      console.log(`[IMPORT] HF API 返回课程数量：${hfResult.courses.length}`);
+      if (hfResult.courses.length > 0) {
+        console.log(`[IMPORT] 第一门课程数据:`, JSON.stringify(hfResult.courses[0]));
+      }
+
+      // 将 snake_case 转换为 camelCase 并添加 userId
+      courses = hfResult.courses.map((course: Record<string, unknown>) => {
+        // 处理 weekList：Python 的 None 转为 JSON null，需要转为 undefined
+        let weekListValue: number[] | undefined = undefined;
+        if (Array.isArray(course.weekList)) {
+          weekListValue = course.weekList as number[];
+        }
+
+        return {
+          courseName: String(course.course_name || ''),
+          teacher: course.teacher && course.teacher !== '' ? String(course.teacher) : null,
+          classroom: String(course.classroom || ''),
+          dayOfWeek: Number(course.day_of_week || 1),
+          startTime: String(course.start_time || ''),
+          endTime: String(course.end_time || ''),
+          period: String(course.period || ''),
+          weekStart: Number(course.weekStart || 1),
+          weekEnd: Number(course.weekEnd || 16),
+          weekPattern: course.weekPattern ? String(course.weekPattern) : null,
+          weekList: weekListValue,
+          notes: null,
+          color: null,
+          userId,
+        };
+      });
+
+      console.log(`[IMPORT] 转换后课程数量：${courses.length}`);
       if (DEBUG && courses.length > 0) {
-        console.log(`PDF 解析完成，得到 ${courses.length} 条课程`);
-        // 不记录完整课程数据，只记录摘要
-        console.log(`成功解析 ${courses.length} 条课程数据`);
+        console.log(`[IMPORT] 转换后第一门课程:`, JSON.stringify(courses[0]));
       }
     }
     // 解析 Excel 文件
@@ -145,10 +197,16 @@ export async function POST(request: NextRequest) {
     // 批量导入课程
     const imported = await bulkImportCourses(courses);
 
+    // 解析 weekList 字段（从 JSON 字符串转为数组）后返回给前端
+    const parsedCourses = imported.map(course => ({
+      ...course,
+      weekList: course.weekList ? JSON.parse(course.weekList as string) : undefined,
+    }));
+
     return NextResponse.json({
       success: true,
       count: imported.length,
-      courses: imported,
+      courses: parsedCourses,
     });
   } catch (error) {
     console.error("课表导入失败:", error);

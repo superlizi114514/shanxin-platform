@@ -3,50 +3,38 @@ import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { sendVerificationEmail } from "@/lib/email";
+import { registerSchema } from "@/lib/validators/auth";
+import { z } from "zod";
+import { checkRateLimit } from "@/middleware/rate-limit";
 
 const prisma = new PrismaClient();
 
 export async function POST(request: NextRequest) {
   try {
+    // 检查速率限制
+    const rateLimitResult = await checkRateLimit(request, "/api/auth/register");
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        {
+          error: "Too many requests",
+          message: `Please try again in ${Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000)} seconds.`,
+        },
+        {
+          status: 429,
+          headers: {
+            "X-RateLimit-Limit": "3",
+            "X-RateLimit-Remaining": "0",
+            "X-RateLimit-Reset": rateLimitResult.resetTime.toString(),
+          },
+        }
+      );
+    }
+
     const body = await request.json();
-    const { email, password, name, studentId, phone, school, major, class: classValue } = body;
 
-    if (!email || !password) {
-      return NextResponse.json(
-        { error: "Email and password are required" },
-        { status: 400 }
-      );
-    }
-
-    if (!studentId) {
-      return NextResponse.json(
-        { error: "学号不能为空" },
-        { status: 400 }
-      );
-    }
-
-    if (!phone) {
-      return NextResponse.json(
-        { error: "手机号不能为空" },
-        { status: 400 }
-      );
-    }
-
-    // Validate student ID format (alphanumeric only)
-    if (!/^[a-zA-Z0-9]+$/.test(studentId)) {
-      return NextResponse.json(
-        { error: "学号格式不正确，只能包含字母和数字" },
-        { status: 400 }
-      );
-    }
-
-    // Validate phone format (11 digit Chinese phone number)
-    if (!/^1[3-9]\d{9}$/.test(phone)) {
-      return NextResponse.json(
-        { error: "手机号格式不正确" },
-        { status: 400 }
-      );
-    }
+    // 使用 Zod 验证请求体
+    const validatedData = registerSchema.parse(body);
+    const { email, password, name, studentId, phone, school, major, class: classValue, isTeacher, title } = validatedData;
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
@@ -60,16 +48,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if student ID is already registered
-    const existingStudentIdUser = await prisma.user.findUnique({
-      where: { studentId },
-    });
+    // Check if student ID is already registered (only for non-teacher)
+    if (studentId && !isTeacher) {
+      const existingStudentIdUser = await prisma.user.findUnique({
+        where: { studentId },
+      });
 
-    if (existingStudentIdUser) {
-      return NextResponse.json(
-        { error: "该学号已被注册" },
-        { status: 400 }
-      );
+      if (existingStudentIdUser) {
+        return NextResponse.json(
+          { error: "该学号已被注册" },
+          { status: 400 }
+        );
+      }
     }
 
     // Hash password
@@ -89,6 +79,7 @@ export async function POST(request: NextRequest) {
         data: {
           name: "山东信息职业技术学院",
           code: "sdxx",
+          address: school || "奎文",
         },
       });
     }
@@ -98,27 +89,31 @@ export async function POST(request: NextRequest) {
       email,
       password: hashedPassword,
       name: name || null,
-      studentId,
+      studentId: isTeacher ? null : studentId,
       phone,
-      school: school || "山东信息职业技术学院",
-      major: major || null,
-      class: classValue || null,
-      schoolId: schoolRecord.id,
+      school: isTeacher ? null : (school || "奎文"),
+      major: isTeacher ? null : major,
+      class: isTeacher ? null : classValue,
+      title: isTeacher ? (title || "老师") : null,
+      isTeacher: isTeacher || false,
+      schoolId: !isTeacher ? schoolRecord.id : null,
       emailVerified: null,
     };
     const user = await prisma.user.create({ data: userData });
 
-    // Create student verification record
-    await prisma.studentVerification.create({
-      data: {
-        studentId,
-        schoolId: schoolRecord.id,
-        major: major || "",
-        class: classValue || "",
-        verified: true, // Auto-verified since we validated the format
-        userId: user.id,
-      },
-    });
+    // Create student verification record (only for non-teacher)
+    if (!isTeacher) {
+      await prisma.studentVerification.create({
+        data: {
+          studentId: studentId || "",
+          schoolId: schoolRecord.id,
+          major: major || "",
+          class: classValue || "",
+          verified: true, // Auto-verified since we validated the format
+          userId: user.id,
+        },
+      });
+    }
 
     // Create verification token
     await prisma.verificationToken.create({
@@ -142,9 +137,23 @@ export async function POST(request: NextRequest) {
         },
         message: "Registration successful. Please check your email to verify your account.",
       },
-      { status: 201 }
+      {
+        status: 201,
+        headers: {
+          "X-RateLimit-Limit": "3",
+          "X-RateLimit-Remaining": rateLimitResult.remaining.toString(),
+          "X-RateLimit-Reset": rateLimitResult.resetTime.toString(),
+        },
+      }
     );
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      const messages = (error as z.ZodError).issues.map(e => e.message).join(', ');
+      return NextResponse.json(
+        { error: messages || "Validation failed" },
+        { status: 400 }
+      );
+    }
     console.error("Registration error:", error);
     return NextResponse.json(
       { error: "Something went wrong" },

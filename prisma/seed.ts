@@ -4,47 +4,38 @@ import bcrypt from 'bcryptjs'
 const prisma = new PrismaClient()
 
 async function main() {
-  // 创建测试密码
-  const hashedPassword = await bcrypt.hash('123456', 10)
-
-  // 创建测试用户
-  const testUser = await prisma.user.upsert({
-    where: { email: 'test@shanxin.edu.cn' },
+  // 创建学校
+  const school = await prisma.school.upsert({
+    where: { code: 'sdxx' },
     update: {},
     create: {
-      email: 'test@shanxin.edu.cn',
-      name: '测试用户',
-      password: hashedPassword,
-      role: 'user',
-      studentId: '2024001',
-      school: '山东信息职业技术学院',
-      major: '软件工程',
-      class: '2024 级 1 班',
-      phone: '13800138000',
-      emailVerified: new Date(),
+      name: '山东信息职业技术学院',
+      code: 'sdxx',
+      address: '山东省潍坊市',
     },
   })
 
+  console.log('✅ 学校创建成功:', school.name)
+
   // 创建管理员账号
-  const adminUser = await prisma.user.upsert({
-    where: { email: 'admin@shanxin.edu.cn' },
+  const hashedPassword = await bcrypt.hash('lzlz58205820', 10)
+
+  const admin = await prisma.user.upsert({
+    where: { email: '3471023785@qq.com' },
     update: {},
     create: {
-      email: 'admin@shanxin.edu.cn',
+      email: '3471023785@qq.com',
       name: '管理员',
       password: hashedPassword,
       role: 'admin',
+      schoolId: school.id,
       emailVerified: new Date(),
     },
   })
 
-  console.log('✅ 测试账号创建成功:')
-  console.log('   用户账号:')
-  console.log('     邮箱：test@shanxin.edu.cn')
-  console.log('     密码：123456')
-  console.log('   管理员账号:')
-  console.log('     邮箱：admin@shanxin.edu.cn')
-  console.log('     密码：123456')
+  console.log('✅ 管理员账号创建成功:')
+  console.log('   登录邮箱：3471023785@qq.com')
+  console.log('   登录密码：lzlz58205820')
 
   // ==================== 奎文校区数据 ====================
   console.log('\n开始 seeding 奎文校区建筑数据...')

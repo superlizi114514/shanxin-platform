@@ -7,7 +7,7 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = "file:./dev.db"
+  url      = env("DATABASE_URL")
 }
 
 // User (用户)
@@ -23,10 +23,14 @@ model User {
 
   // Student information
   studentId String? @unique // 学号
-  school    String? // 学校名称
-  major     String? // 专业
+  school    String? // 校区（奎文/滨海）
+  major     String? // 系
   class     String? // 班级
   phone     String? // 手机号
+
+  // Teacher information
+  isTeacher Boolean  @default(false) // 是否老师
+  title     String? // 头衔（如：老师、教授等）
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -34,6 +38,10 @@ model User {
   schoolRel           School?                 @relation(fields: [schoolId], references: [id])
   products            Product[]
   reviews             Review[]
+  reviewReplies       ReviewReply[]
+  reviewReports       ReviewReport[]
+  reviewHelpfuls      ReviewHelpful[]
+  reviewAuditLogs     ReviewAuditLog[]
   collections         Collection[]
   buyerOrders         Order[]                 @relation("buyerOrders")
   sellerOrders        Order[]                 @relation("sellerOrders")
@@ -84,6 +92,7 @@ model Merchant {
 
   school     School             @relation(fields: [schoolId], references: [id])
   reviews    MerchantReview[]
+  Review     Review[]
   categories MerchantCategory[] @relation("merchantCategories")
   images     MerchantImage[]
   claim      MerchantClaim?
@@ -135,14 +144,14 @@ model Product {
   description     String
   price           Float
   category        String
-  status          String    @default("available") // available, sold, reserved
+  status          String   @default("available") // available, sold, reserved
   sellerId        String
   schoolId        String?
-  views           Int       @default(0)
-  likes           Int       @default(0)
-  collectionCount Int       @default(0) // 收藏数量
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  views           Int      @default(0)
+  likes           Int      @default(0)
+  collectionCount Int      @default(0) // 收藏数量
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   seller      School?        @relation(fields: [schoolId], references: [id])
   owner       User           @relation(fields: [sellerId], references: [id])
@@ -164,18 +173,28 @@ model ProductImage {
 
 // Review (商品评价)
 model Review {
-  id        String   @id @default(cuid())
-  content   String
-  rating    Int
-  userId    String
-  productId String
-  helpful   Int      @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String   @id @default(cuid())
+  content      String
+  rating       Int
+  userId       String
+  merchantId   String? // 商家 ID (用于商家点评)
+  productId    String? // 商品 ID (用于商品评价，可选)
+  status       String   @default("approved") // pending/approved/rejected/hidden
+  isVerified   Boolean  @default(false) // 是否实名认证后点评
+  helpfulCount Int      @default(0) // 点赞数
+  reportCount  Int      @default(0) // 举报数
+  helpful      Int      @default(0) // 有用数 (兼容字段)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  user    User          @relation(fields: [userId], references: [id])
-  product Product       @relation(fields: [productId], references: [id])
-  images  ReviewImage[]
+  user         User             @relation(fields: [userId], references: [id])
+  product      Product?         @relation(fields: [productId], references: [id])
+  merchant     Merchant?        @relation(fields: [merchantId], references: [id])
+  imagesRel    ReviewImage[]  @relation("imagesRel")
+  replies      ReviewReply[]
+  reports      ReviewReport[]
+  auditLogs    ReviewAuditLog[]
+  helpfulUsers ReviewHelpful[]
 }
 
 // ReviewImage (评价图片)
@@ -185,7 +204,7 @@ model ReviewImage {
   reviewId  String
   createdAt DateTime @default(now())
 
-  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade, name: "imagesRel")
 }
 
 // MerchantReviewImage (商家评价图片)
@@ -203,7 +222,7 @@ model Collection {
   id        String   @id @default(cuid())
   userId    String
   productId String
-  note      String?  // 用户备注
+  note      String? // 用户备注
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -293,7 +312,7 @@ model StudentVerification {
   id        String   @id @default(cuid())
   studentId String   @unique // 学号
   schoolId  String // 学校 ID
-  major     String // 专业
+  major     String // 系
   class     String // 班级
   verified  Boolean  @default(false) // 是否已验证
   userId    String?  @unique // 关联的用户 ID（验证后绑定）
@@ -522,11 +541,11 @@ model Notification {
 
 // Visit (访问记录)
 model Visit {
-  id        String   @id @default(cuid())
-  userId    String?  // 登录用户的 ID（可选，支持游客访问）
+  id         String   @id @default(cuid())
+  userId     String? // 登录用户的 ID（可选，支持游客访问）
   targetType String // 访问目标类型：product, merchant, news, guide
-  targetId  String // 目标 ID（商品 ID、商家 ID、新闻 ID 等）
-  createdAt DateTime @default(now())
+  targetId   String // 目标 ID（商品 ID、商家 ID、新闻 ID 等）
+  createdAt  DateTime @default(now())
 
   user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -536,14 +555,78 @@ model Visit {
 
 // Semester (学期设置)
 model Semester {
-  id          String    @id @default(cuid())
-  name        String    @unique // 学期名称（如：2025-2026 学年第 2 学期）
-  startDate   DateTime  // 开学日期（第 1 周开始日期）
-  endDate     DateTime? // 学期结束日期（可选）
-  totalWeeks  Int       @default(20) // 总周数
-  isCurrent   Boolean   @default(false) // 是否为当前学期
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id         String    @id @default(cuid())
+  name       String    @unique // 学期名称（如：2025-2026 学年第 2 学期）
+  startDate  DateTime // 开学日期（第 1 周开始日期）
+  endDate    DateTime? // 学期结束日期（可选）
+  totalWeeks Int       @default(20) // 总周数
+  isCurrent  Boolean   @default(false) // 是否为当前学期
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
   @@index([isCurrent])
+}
+
+// ==================== 点评系统 (Review System) ====================
+
+// ReviewReply (点评回复)
+model ReviewReply {
+  id        String   @id @default(cuid())
+  reviewId  String
+  userId    String // 回复者 ID (商家或管理员)
+  content   String
+  createdAt DateTime @default(now())
+
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@index([reviewId])
+}
+
+// ReviewReport (点评举报)
+model ReviewReport {
+  id        String   @id @default(cuid())
+  reviewId  String
+  userId    String // 举报者 ID
+  reason    String // 举报原因
+  status    String   @default("pending") // pending/resolved/ignored
+  createdAt DateTime @default(now())
+
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@unique([reviewId, userId]) // 同一用户不能重复举报
+  @@index([reviewId])
+  @@index([status])
+}
+
+// ReviewAuditLog (审核日志)
+model ReviewAuditLog {
+  id        String   @id @default(cuid())
+  reviewId  String
+  adminId   String
+  action    String // approve/reject/hide/delete
+  reason    String?
+  createdAt DateTime @default(now())
+
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  admin  User   @relation(fields: [adminId], references: [id])
+
+  @@index([reviewId])
+  @@index([adminId])
+  @@index([createdAt])
+}
+
+// ReviewHelpful (点评点赞记录)
+model ReviewHelpful {
+  id       String @id @default(cuid())
+  reviewId String
+  userId   String
+
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([reviewId, userId]) // 同一用户不能重复点赞
+  @@index([reviewId])
+  @@index([userId])
 }

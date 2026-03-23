@@ -13,11 +13,13 @@ interface User {
   avatar: string | null;
   role: string;
   emailVerified: string | null;
-  school: {
-    id: string;
-    name: string;
-    code: string;
-  } | null;
+  school: string | null;
+  studentId: string | null;
+  major: string | null;
+  class: string | null;
+  phone: string | null;
+  isTeacher: boolean | null;
+  title: string | null;
   stats: {
     products: number;
     buyerOrders: number;
@@ -95,7 +97,13 @@ export default function ProfilePage() {
   const [editForm, setEditForm] = useState({
     name: "",
     email: "",
+    studentId: "",
+    school: "",
+    major: "",
+    class: "",
+    phone: "",
   });
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   const fetchProfile = async () => {
     try {
@@ -106,6 +114,11 @@ export default function ProfilePage() {
         setEditForm({
           name: data.user.name || "",
           email: data.user.email,
+          studentId: data.user.studentId || "",
+          school: data.user.school || "",
+          major: data.user.major || "",
+          class: data.user.class || "",
+          phone: data.user.phone || "",
         });
       }
     } catch (error) {
@@ -130,6 +143,11 @@ export default function ProfilePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: editForm.name,
+          studentId: editForm.studentId,
+          school: editForm.school,
+          major: editForm.major,
+          class: editForm.class,
+          phone: editForm.phone,
         }),
       });
 
@@ -142,6 +160,59 @@ export default function ProfilePage() {
     } catch (error) {
       console.error("Failed to update profile:", error);
       alert("更新失败，请重试");
+    }
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      alert("请选择图片文件");
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert("图片大小不能超过 5MB");
+      return;
+    }
+
+    setUploadingAvatar(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "上传失败");
+      }
+
+      const data = await response.json();
+
+      // Update user avatar
+      const updateResponse = await fetch("/api/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ avatar: data.url }),
+      });
+
+      if (updateResponse.ok) {
+        await updateSession();
+        fetchProfile();
+        alert("头像已更新");
+      }
+    } catch (error) {
+      console.error("Avatar upload failed:", error);
+      alert("头像上传失败：" + (error as Error).message);
+    } finally {
+      setUploadingAvatar(false);
     }
   };
 
@@ -186,19 +257,38 @@ export default function ProfilePage() {
       <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-lg p-8 border border-white/20">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-5">
-            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center overflow-hidden shadow-lg ring-4 ring-blue-50">
-              {user.avatar ? (
-                <Image
-                  src={user.avatar}
-                  alt={user.name || "用户"}
-                  width={96}
-                  height={96}
-                  className="object-cover"
+            <div className="relative">
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center overflow-hidden shadow-lg ring-4 ring-blue-50">
+                {user.avatar ? (
+                  <Image
+                    src={user.avatar}
+                    alt={user.name || "用户"}
+                    width={96}
+                    height={96}
+                    className="object-cover"
+                  />
+                ) : (
+                  <span className="text-4xl font-bold text-blue-600">
+                    {(user.name?.charAt(0) || user.email.charAt(0)).toUpperCase()}
+                  </span>
+                )}
+              </div>
+              <label className="absolute bottom-0 right-0 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center cursor-pointer hover:bg-blue-700 transition-colors shadow-md">
+                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                </svg>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarUpload}
+                  className="hidden"
+                  disabled={uploadingAvatar}
                 />
-              ) : (
-                <span className="text-4xl font-bold text-blue-600">
-                  {(user.name?.charAt(0) || user.email.charAt(0)).toUpperCase()}
-                </span>
+              </label>
+              {uploadingAvatar && (
+                <div className="absolute inset-0 rounded-full bg-white/80 flex items-center justify-center">
+                  <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                </div>
               )}
             </div>
             <div>
@@ -212,17 +302,76 @@ export default function ProfilePage() {
                     管理员
                   </span>
                 )}
+                {user.isTeacher && (
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-sm">
+                    <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9 4.8a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
+                      <path fillRule="evenodd" d="M2.343 10.657c.39-.39 1.023-.39 1.414 0L6 12.9V5a1 1 0 011-1h6a1 1 0 011 1v7.9l2.243-2.243a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414zM5 14a1 1 0 100 2h.01a1 1 0 100-2H5z" clipRule="evenodd" />
+                    </svg>
+                    {user.title || "老师"}
+                  </span>
+                )}
               </h2>
               <p className="text-gray-600 mt-1">{user.email}</p>
-              {user.school && (
-                <p className="text-gray-500 text-sm mt-1 flex items-center gap-1">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path d="M12 14l9-5-9-5-9 5 9 5z" />
-                    <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
-                  </svg>
-                  {user.school.name}
-                </p>
-              )}
+              <div className="mt-2 space-y-1">
+                {user.studentId && (
+                  <p className="text-gray-500 text-sm flex items-center gap-1">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-8 0a2 2 0 104 0m-2 0h4" />
+                    </svg>
+                    学号：{user.studentId}
+                  </p>
+                )}
+                {user.school && (
+                  <p className="text-gray-500 text-sm flex items-center gap-1">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path d="M12 14l9-5-9-5-9 5 9 5z" />
+                      <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+                    </svg>
+                    {user.school}
+                  </p>
+                )}
+                {user.major && (
+                  <p className="text-gray-500 text-sm flex items-center gap-1">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    专业：{user.major}
+                  </p>
+                )}
+                {user.class && (
+                  <p className="text-gray-500 text-sm flex items-center gap-1">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    班级：{user.class}
+                  </p>
+                )}
+                {user.phone && (
+                  <p className="text-gray-500 text-sm flex items-center gap-1">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                    手机：{user.phone}
+                  </p>
+                )}
+                {!user.isTeacher && !user.studentId && (
+                  <div className="mt-3 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                    <p className="text-sm text-gray-700 font-medium flex items-center gap-2">
+                      <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                      </svg>
+                      老师认证
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1.5">
+                      联系微信 <span className="font-mono font-medium text-blue-600 select-all">SiNianNiQWQ</span> 进行老师身份认证
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      认证后可获得老师专属标识和更多权限
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
           <button
@@ -330,13 +479,40 @@ export default function ProfilePage() {
             发布商品
           </Link>
           <Link
-            href="/collections"
+            href="/profile/my-products"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 hover:border-gray-300 shadow-sm hover:shadow transition-all duration-200 font-medium text-sm"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 15H4L5 9z" />
+            </svg>
+            我的发布
+          </Link>
+          <Link
+            href="/profile/my-collections"
             className="inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 hover:border-gray-300 shadow-sm hover:shadow transition-all duration-200 font-medium text-sm"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
             </svg>
             我的收藏
+          </Link>
+          <Link
+            href="/profile/my-schedule"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 hover:border-gray-300 shadow-sm hover:shadow transition-all duration-200 font-medium text-sm"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            我的课表
+          </Link>
+          <Link
+            href="/profile/my-reviews"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 hover:border-gray-300 shadow-sm hover:shadow transition-all duration-200 font-medium text-sm"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+            </svg>
+            我的评价
           </Link>
           <Link
             href="/messages"
@@ -355,6 +531,15 @@ export default function ProfilePage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
             订单管理
+          </Link>
+          <Link
+            href="/profile/account-security"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 hover:border-gray-300 shadow-sm hover:shadow transition-all duration-200 font-medium text-sm"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            账号安全
           </Link>
         </div>
       </div>
@@ -722,6 +907,76 @@ export default function ProfilePage() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
+              学号
+            </label>
+            <input
+              type="text"
+              value={editForm.studentId}
+              onChange={(e) =>
+                setEditForm({ ...editForm, studentId: e.target.value })
+              }
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="输入学号"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              学校
+            </label>
+            <input
+              type="text"
+              value={editForm.school}
+              onChange={(e) =>
+                setEditForm({ ...editForm, school: e.target.value })
+              }
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="输入学校名称"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              专业
+            </label>
+            <input
+              type="text"
+              value={editForm.major}
+              onChange={(e) =>
+                setEditForm({ ...editForm, major: e.target.value })
+              }
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="输入专业"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              班级
+            </label>
+            <input
+              type="text"
+              value={editForm.class}
+              onChange={(e) =>
+                setEditForm({ ...editForm, class: e.target.value })
+              }
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="输入班级"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              手机号
+            </label>
+            <input
+              type="tel"
+              value={editForm.phone}
+              onChange={(e) =>
+                setEditForm({ ...editForm, phone: e.target.value })
+              }
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="输入手机号"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               邮箱
             </label>
             <input
@@ -742,7 +997,15 @@ export default function ProfilePage() {
             <button
               onClick={() => {
                 setEditMode(false);
-                setEditForm({ name: user.name || "", email: user.email });
+                setEditForm({
+                  name: user.name || "",
+                  email: user.email,
+                  studentId: user.studentId || "",
+                  school: user.school || "",
+                  major: user.major || "",
+                  class: user.class || "",
+                  phone: user.phone || "",
+                });
               }}
               className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
             >

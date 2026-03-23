@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { createNotification } from "@/lib/notifications";
+import { messageQuerySchema, sendMessageSchema } from "@/lib/validators/message";
+import { z } from "zod";
 
 const prisma = new PrismaClient();
 
@@ -17,12 +19,16 @@ export async function GET(request: NextRequest) {
     }
 
     const searchParams = request.nextUrl.searchParams;
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "20");
-    const otherUserId = searchParams.get("userId"); // 获取与特定用户的对话
 
+    // 验证查询参数
+    const queryParams = messageQuerySchema.parse({
+      page: searchParams.get("page"),
+      limit: searchParams.get("limit"),
+      userId: searchParams.get("userId"),
+    });
+
+    const { page, limit, userId: otherUserId } = queryParams;
     const skip = (page - 1) * limit;
-
     if (otherUserId) {
       // 获取与特定用户的所有消息
       const messages = await prisma.message.findMany({
@@ -112,6 +118,13 @@ export async function GET(request: NextRequest) {
       });
     }
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      const messages = (error as z.ZodError).issues.map(e => e.message).join(', ');
+      return NextResponse.json(
+        { error: messages || "Validation failed" },
+        { status: 400 }
+      );
+    }
     console.error("Error fetching messages:", error);
     return NextResponse.json(
       { error: "Failed to fetch messages" },
@@ -134,14 +147,10 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { receiverId, content } = body;
 
-    if (!receiverId || !content) {
-      return NextResponse.json(
-        { error: "Receiver ID and content are required" },
-        { status: 400 }
-      );
-    }
+    // 验证请求体
+    const validatedData = sendMessageSchema.parse(body);
+    const { receiverId, content } = validatedData;
 
     if (receiverId === session.user.id) {
       return NextResponse.json(
@@ -196,6 +205,13 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(message, { status: 201 });
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      const messages = (error as z.ZodError).issues.map(e => e.message).join(', ');
+      return NextResponse.json(
+        { error: messages || "Validation failed" },
+        { status: 400 }
+      );
+    }
     console.error("Error sending message:", error);
     return NextResponse.json(
       { error: "Failed to send message" },

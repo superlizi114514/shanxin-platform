@@ -110,6 +110,8 @@ export async function GET() {
         major: user.major,
         class: user.class,
         phone: user.phone,
+        isTeacher: user.isTeacher,
+        title: user.title,
         stats: user._count,
         products: user.products,
         buyerOrders: user.buyerOrders,
@@ -137,12 +139,26 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, avatar, schoolId } = body;
+    const {
+      name,
+      avatar,
+      schoolId,
+      studentId,
+      school,
+      major,
+      class: className,
+      phone
+    } = body;
 
     const updateData: Record<string, unknown> = {};
     if (name !== undefined) updateData.name = name;
     if (avatar !== undefined) updateData.avatar = avatar;
     if (schoolId !== undefined) updateData.schoolId = schoolId;
+    if (studentId !== undefined) updateData.studentId = studentId;
+    if (school !== undefined) updateData.school = school;
+    if (major !== undefined) updateData.major = major;
+    if (className !== undefined) updateData.class = className;
+    if (phone !== undefined) updateData.phone = phone;
 
     const user = await prisma.user.update({
       where: { id: session.user.id },
@@ -155,6 +171,11 @@ export async function PATCH(request: NextRequest) {
         email: user.email,
         name: user.name,
         avatar: user.avatar,
+        studentId: user.studentId,
+        school: user.school,
+        major: user.major,
+        class: user.class,
+        phone: user.phone,
       },
     });
   } catch (error) {

@@ -6,17 +6,18 @@
 // 课程输入接口
 export interface CourseInput {
   courseName: string;
-  teacher?: string;
+  teacher?: string | null;
   classroom?: string;
   dayOfWeek: number;
   startPeriod: number;
   endPeriod: number;
   startTime?: string;
   endTime?: string;
+  period?: string | null;
   weekRange?: string;
   weekStart?: number;
   weekEnd?: number;
-  weekType?: string;
+  weekType?: string | null;
   semesterId?: string;
   note?: string;
   color?: string;
@@ -56,7 +57,7 @@ export function parseStandardSchedule(
 
   // 提取元数据
   const headerMatch = text.match(
-    /(\d{4}-\d{4} 学年第 [12] 学期)\s*(.+?) 课表.*？学号：(\d+)/s
+    /(\d{4}-\d{4} 学年第 [12] 学期)\s*(.+?) 课表 [\s\S]*?学号：(\d+)/
   );
   const metadata = {
     semester: headerMatch?.[1],
@@ -126,16 +127,17 @@ export function parseStandardSchedule(
 
     courses.push({
       courseName,
-      teacher: teacher || null,
+      teacher: teacher || undefined,
       classroom: classroom || "",
       dayOfWeek,
+      startPeriod,
+      endPeriod,
       startTime: `${startPeriod}`,
       endTime: `${endPeriod}`,
       period: `${startPeriod}-${endPeriod}节`,
       weekStart,
       weekEnd,
-      weekPattern,
-      notes: null,
+      weekType: weekPattern,
       userId,
     });
   }
@@ -223,16 +225,17 @@ export function parseShanxinSchedule(text: string, userId: string): ParseResult 
 
     courses.push({
       courseName,
-      teacher: teacher || null,
+      teacher: teacher || undefined,
       classroom: classroom || "",
       dayOfWeek,
+      startPeriod,
+      endPeriod,
       startTime: `${startPeriod}`,
       endTime: `${endPeriod}`,
       period: `${startPeriod}-${endPeriod}节`,
       weekStart,
       weekEnd,
-      weekPattern,
-      notes: null,
+      weekType: weekPattern,
       userId,
     });
   }

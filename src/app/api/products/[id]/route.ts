@@ -29,7 +29,7 @@ export async function GET(
             user: {
               select: { id: true, name: true, avatar: true },
             },
-            images: {
+            imagesRel: {
               select: { id: true, url: true },
             },
           },
@@ -226,6 +226,72 @@ export async function DELETE(
     console.error("Error deleting product:", error);
     return NextResponse.json(
       { error: "Failed to delete product" },
+      { status: 500 }
+    );
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+// PATCH - 部分更新商品（如更新状态）
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "Unauthorized. Please log in." },
+        { status: 401 }
+      );
+    }
+
+    const { id } = await params;
+    const body = await request.json();
+
+    // 检查商品是否存在且属于当前用户
+    const existingProduct = await prisma.product.findUnique({
+      where: { id },
+    });
+
+    if (!existingProduct) {
+      return NextResponse.json(
+        { error: "Product not found" },
+        { status: 404 }
+      );
+    }
+
+    if (existingProduct.sellerId !== session.user.id) {
+      return NextResponse.json(
+        { error: "You can only update your own products" },
+        { status: 403 }
+      );
+    }
+
+    // 构建更新数据
+    const updateData: Record<string, unknown> = {};
+    if (body.status !== undefined) updateData.status = body.status;
+    if (body.title !== undefined) updateData.title = body.title;
+    if (body.description !== undefined) updateData.description = body.description;
+    if (body.price !== undefined) updateData.price = parseFloat(body.price);
+    if (body.category !== undefined) updateData.category = body.category;
+
+    const product = await prisma.product.update({
+      where: { id },
+      data: updateData,
+      include: {
+        images: {
+          select: { id: true, url: true },
+        },
+      },
+    });
+
+    return NextResponse.json(product);
+  } catch (error) {
+    console.error("Error updating product:", error);
+    return NextResponse.json(
+      { error: "Failed to update product" },
       { status: 500 }
     );
   } finally {

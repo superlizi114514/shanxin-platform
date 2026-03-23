@@ -239,15 +239,15 @@ function parseFormat1(lines: string[], dayMap: Record<string, number>, userId: s
     }
 
     if (currentDay === 0) continue;
-    if (!line.includes('节')) continue;
+    if (!line.includes(UNICODE.JIE)) continue;
 
     const segments = line.split('|').map(s => s.trim()).filter(s => s);
 
     for (let j = 0; j < segments.length; j++) {
       const segment = segments[j];
-      if (!segment.includes('☆')) continue;
+      if (!segment.includes(UNICODE.STAR)) continue;
 
-      let courseName = sanitizeCourseText(segment.replace('☆', '').trim());
+      let courseName = sanitizeCourseText(segment.replace(UNICODE.STAR, '').trim());
       if (!courseName || courseName.length > 100) continue;
 
       let fullInfo = '';
@@ -255,7 +255,7 @@ function parseFormat1(lines: string[], dayMap: Record<string, number>, userId: s
         fullInfo += sanitizeCourseText(segments[k]) + ' ';
       }
 
-      const periodMatch = fullInfo.match(/\((\d+)-(\d+) 节\)/);
+      const periodMatch = fullInfo.match(new RegExp(`\\((\\d+)-(\\d+)${UNICODE.JIE}\\)`));
       if (!periodMatch || periodMatch.index === undefined) continue;
 
       const startPeriod = parseInt(periodMatch[1]);
@@ -312,7 +312,7 @@ function parseFormat2(lines: string[], dayMap: Record<string, number>, userId: s
   const courses: CourseInput[] = [];
 
   for (const line of lines) {
-    if (!line.includes('节') && !line.includes('周')) continue;
+    if (!line.includes(UNICODE.JIE) && !line.includes('周')) continue;
 
     const parts = line.split(/[|\t]/).map(p => p.trim()).filter(p => p);
     if (parts.length < 4) continue;
@@ -477,8 +477,8 @@ function parseFormat4(text: string, dayMap: Record<string, number>, userId: stri
     }
 
     // 检测课程（带☆）
-    if (line.includes('☆') && currentDay > 0) {
-      const courseName = line.replace('☆', '').trim().replace(/^[0-9\s]+/, ''); // 去掉节次编号
+    if (line.includes(UNICODE.STAR) && currentDay > 0) {
+      const courseName = line.replace(UNICODE.STAR, '').trim().replace(/^[0-9\s]+/, ''); // 去掉节次编号
       if (!courseName || courseName.length < 2) continue;
 
       // 下一行应该是课程详情

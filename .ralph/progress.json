@@ -1,7 +1,7 @@
 {
-  "status": "completed",
-  "timestamp": "2026-03-19 00:45:00",
-  "lastTask": "US-001: 修复 PDF 课表解析器构建错误",
+  "status": "in_progress",
+  "timestamp": "2026-03-23 09:00:00",
+  "lastTask": "US-038: 老师注册功能",
   "completedTasks": [
     "M3 US-001: 添加校园建筑位置数据",
     "M3 US-002: 更新教室位置关联建筑",
@@ -28,10 +28,77 @@
       "build": "passed",
       "lint": "passed (test script fixed)",
       "typecheck": "passed"
+    },
+    "US-006: 创建校园地图可视化组件": {
+      "typecheck": "passed (map-related files)",
+      "implementation": "complete - MapWrapper.tsx + map/page.tsx"
+    },
+    "US-007: 添加校区切换功能": {
+      "implementation": "complete - 地图页面已实现校区切换功能",
+      "ui": "segmented control 样式，支持全部/奎文/滨海切换"
+    },
+    "US-008: 完善课表页面 UI": {
+      "implementation": "complete - 使用 UI/UX Pro Max 设计指南优化",
+      "improvements": ["渐变背景课程卡片", "SVG 图标", "分段控制器周次选择器", "骨架屏加载", "悬持动画"]
+    },
+    "US-009: 完善课表导入页面": {
+      "implementation": "complete - 使用 UI/UX Pro Max 设计指南优化",
+      "features": ["拖拽上传区域", "进度条动画", "成功/错误状态反馈", "SVG 图标", "渐变按钮", "辅助提示信息"]
+    },
+    "Agent D 测试系统 - 用户点评商家审核系统": {
+      "unit_tests": "31/31 passed",
+      "test_files": [
+        "tests/unit/review-service.test.ts",
+        "tests/unit/audit-logic.test.ts",
+        "tests/integration/reviews-api.test.ts",
+        "tests/integration/auth.test.ts",
+        "tests/e2e/create-review.spec.ts",
+        "tests/e2e/audit-flow.spec.ts",
+        "tests/e2e/report-flow.spec.ts",
+        "tests/performance/reviews-load.spec.ts",
+        "tests/a11y/reviews.spec.ts"
+      ],
+      "config_files": [
+        "vitest.config.ts",
+        "playwright.config.ts",
+        "tests/setup.ts",
+        "tests/factories/index.ts"
+      ],
+      "scripts": [
+        "scripts/security-scan.ts"
+      ],
+      "coverage": "单元测试 31 个测试用例全部通过"
+    },
+    "US-037: 登录/注册页面优化": {
+      "build": "passed",
+      "implementation": "complete",
+      "improvements": [
+        "登录页面 - 密码可见性切换按钮",
+        "登录页面 - 记住我功能 (localStorage 持久化)",
+        "登录页面 - 邮箱/密码实时验证",
+        "登录页面 - 错误提示优化",
+        "注册页面 - 密码强度指示器 (4 级强度)",
+        "注册页面 - 密码可见性切换按钮",
+        "注册页面 - 手机号实时格式化 (3-4-4 格式)",
+        "注册页面 - 所有字段实时验证",
+        "注册页面 - 学号验证错误提示",
+        "修复 ReviewCard/ReviewForm Toast 组件导入错误"
+      ]
+    },
+    "US-038: 老师注册功能": {
+      "build": "passed",
+      "implementation": "complete",
+      "features": [
+        "注册页面 - 老师注册复选框",
+        "老师注册无需填写学号/系/班级",
+        "自动赋予老师头衔",
+        "个人主页显示老师标识",
+        "个人主页提供老师认证入口 (联系微信 SiNianNiQWQ)"
+      ]
     }
   ],
-  "nextTask": "无 - 所有核心功能已完成 (等待新功能需求)",
-  "currentFeature": "所有核心功能已实现",
+  "nextTask": "待定",
+  "currentFeature": "US-038 老师注册功能 (完成)",
   "projectStatus": {
     "phase1": "complete",
     "phase2": "complete",
@@ -46,6 +113,14 @@
     "m4": "complete",
     "m5": "complete",
     "m6": "complete",
-    "m7_pdfImport": "complete"
+    "m7_pdfImport": "complete",
+    "us006_map": "complete",
+    "us007_campusSwitch": "complete",
+    "us008_scheduleUI": "complete",
+    "us009_importPage": "complete",
+    "agent1_schedule_map": "complete",
+    "agent_d_testing": "complete",
+    "us037_login_register": "complete",
+    "us038_teacher_registration": "complete"
   }
 }

@@ -5,6 +5,10 @@ const nextConfig: NextConfig = {
   // Server configuration
   experimental: {
     // Force specific port
+    // Optimize server actions and middleware
+    serverActions: {
+      bodySizeLimit: '2mb',
+    },
   },
 
   // Fix for pdfjs-dist worker loading in Turbopack

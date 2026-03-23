@@ -4,6 +4,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
+import { CaptchaInput } from "@/components/CaptchaInput";
+
+interface PasswordStrength {
+  level: 0 | 1 | 2 | 3 | 4;
+  label: string;
+  color: string;
+}
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -11,46 +18,148 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [studentId, setStudentId] = useState("");
   const [phone, setPhone] = useState("");
   const [school, setSchool] = useState("");
   const [major, setMajor] = useState("");
   const [classValue, setClassValue] = useState("");
+  const [captchaCode, setCaptchaCode] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState<string | null>(null);
   const [verifyingStudentId, setVerifyingStudentId] = useState(false);
   const [studentIdVerified, setStudentIdVerified] = useState(false);
-  const [verifiedSchoolName, setVerifiedSchoolName] = useState("");
+  const [verifiedCampusName, setVerifiedCampusName] = useState("");
+  const [verifiedDepartmentName, setVerifiedDepartmentName] = useState("");
+  const [isTeacher, setIsTeacher] = useState(false);
+
+  // 表单验证状态
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [confirmPasswordError, setConfirmPasswordError] = useState("");
+  const [phoneError, setPhoneError] = useState("");
+  const [studentIdError, setStudentIdError] = useState("");
+
+  // 密码强度计算
+  const getPasswordStrength = (pwd: string): PasswordStrength => {
+    let strength = 0;
+    if (pwd.length >= 6) strength++;
+    if (pwd.length >= 8) strength++;
+    if (/[a-z]/.test(pwd) && /[A-Z]/.test(pwd)) strength++;
+    if (/\d/.test(pwd)) strength++;
+    if (/[^a-zA-Z0-9]/.test(pwd)) strength++;
+
+    if (strength <= 1) return { level: 1, label: "太简单", color: "bg-red-500" };
+    if (strength <= 2) return { level: 2, label: "较弱", color: "bg-orange-500" };
+    if (strength <= 3) return { level: 3, label: "中等", color: "bg-yellow-500" };
+    if (strength <= 4) return { level: 4, label: "较强", color: "bg-blue-500" };
+    return { level: 4, label: "强", color: "bg-green-500" };
+  };
+
+  const passwordStrength = getPasswordStrength(password);
+
+  // 实时验证函数
+  const validateEmail = (value: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!value) {
+      setEmailError("请输入邮箱地址");
+      return false;
+    }
+    if (!emailRegex.test(value)) {
+      setEmailError("邮箱格式不正确");
+      return false;
+    }
+    setEmailError("");
+    return true;
+  };
+
+  const validatePassword = (value: string): boolean => {
+    if (!value) {
+      setPasswordError("请输入密码");
+      return false;
+    }
+    if (value.length < 6) {
+      setPasswordError("密码必须至少 6 位");
+      return false;
+    }
+    setPasswordError("");
+    return true;
+  };
+
+  const validateConfirmPassword = (value: string): boolean => {
+    if (!value) {
+      setConfirmPasswordError("请确认密码");
+      return false;
+    }
+    if (value !== password) {
+      setConfirmPasswordError("两次输入的密码不一致");
+      return false;
+    }
+    setConfirmPasswordError("");
+    return true;
+  };
+
+  const validatePhone = (value: string): boolean => {
+    const phoneRegex = /^1[3-9]\d{9}$/;
+    if (!value) {
+      setPhoneError("请输入手机号");
+      return false;
+    }
+    if (!phoneRegex.test(value)) {
+      setPhoneError("手机号格式不正确");
+      return false;
+    }
+    setPhoneError("");
+    return true;
+  };
+
+  const validateStudentId = (value: string): boolean => {
+    // 老师注册无需学号
+    if (isTeacher) {
+      setStudentIdError("");
+      return true;
+    }
+    if (!value.trim()) {
+      setStudentIdError("请输入学号");
+      return false;
+    }
+    setStudentIdError("");
+    return true;
+  };
+
+  // 手机号格式化（3-4-4 格式）
+  const formatPhone = (value: string): string => {
+    const cleaned = value.replace(/\D/g, "");
+    if (cleaned.length <= 3) return cleaned;
+    if (cleaned.length <= 7) return `${cleaned.slice(0, 3)} ${cleaned.slice(3)}`;
+    return `${cleaned.slice(0, 3)} ${cleaned.slice(3, 7)} ${cleaned.slice(7, 11)}`;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    // Verify student ID first if not already verified
-    if (!studentIdVerified) {
+    // 验证所有字段
+    const isEmailValid = validateEmail(email);
+    const isPasswordValid = validatePassword(password);
+    const isConfirmPasswordValid = validateConfirmPassword(confirmPassword);
+    const isPhoneValid = validatePhone(phone);
+    const isStudentIdValid = validateStudentId(studentId);
+
+    if (!isEmailValid || !isPasswordValid || !isConfirmPasswordValid || !isPhoneValid || !isStudentIdValid) {
+      return;
+    }
+
+    // 验证学号 (非老师注册)
+    if (!isTeacher && !studentIdVerified) {
       setError("请先验证学号");
       return;
     }
 
-    if (password !== confirmPassword) {
-      setError("两次输入的密码不一致");
-      return;
-    }
-
-    if (password.length < 6) {
-      setError("密码必须至少 6 位");
-      return;
-    }
-
-    if (!phone.trim()) {
-      setError("手机号不能为空");
-      return;
-    }
-
-    // Validate phone format (11 digit Chinese phone number)
-    if (!/^1[3-9]\d{9}$/.test(phone)) {
-      setError("手机号格式不正确");
+    if (!captchaCode) {
+      setError("请输入验证码");
       return;
     }
 
@@ -64,11 +173,13 @@ export default function RegisterPage() {
           name,
           email,
           password,
-          studentId,
-          phone,
-          school: verifiedSchoolName || "山东信息职业技术学院",
-          major,
-          class: classValue,
+          studentId: isTeacher ? null : studentId,
+          phone: phone.replace(/\D/g, ""), // 提交时移除空格
+          campus: isTeacher ? undefined : (verifiedCampusName || "奎文"),
+          major: isTeacher ? undefined : major,
+          class: isTeacher ? undefined : classValue,
+          isTeacher,
+          title: isTeacher ? "老师" : undefined,
         }),
       });
 
@@ -117,9 +228,11 @@ export default function RegisterPage() {
 
       if (response.ok && data.valid) {
         setStudentIdVerified(true);
-        setVerifiedSchoolName(data.schoolName || "山东信息职业技术学院");
-        if (data.schoolCode) {
-          setSchool(data.schoolName || "");
+        setVerifiedCampusName(data.campusName || "奎文");
+        setVerifiedDepartmentName(data.departmentName || "");
+        // 自动设置校区选择
+        if (data.campusName) {
+          setSchool(data.campusName.includes("奎文") ? "奎文" : "滨海");
         }
       } else {
         setError(data.error || "学号验证失败");
@@ -208,18 +321,60 @@ export default function RegisterPage() {
                     autoComplete="email"
                     required
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="appearance-none rounded-xl relative block w-full pl-10 pr-3 py-2.5 border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (emailError) validateEmail(e.target.value);
+                    }}
+                    onBlur={(e) => validateEmail(e.target.value)}
+                    className={`appearance-none rounded-xl relative block w-full pl-10 pr-3 py-2.5 border ${
+                      emailError ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
+                    } placeholder-gray-400 text-gray-900 focus:outline-none focus:border-transparent transition-all`}
                     placeholder="your@email.com"
+                    aria-describedby={emailError ? "email-error" : undefined}
                   />
                 </div>
+                {emailError && (
+                  <p id="email-error" className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    {emailError}
+                  </p>
+                )}
               </div>
             </div>
 
             {/* Student ID Verification */}
             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100">
+              {/* 老师注册选项 */}
+              <label className="flex items-center gap-3 mb-4 p-3 bg-white rounded-lg border border-blue-200 cursor-pointer hover:border-blue-300 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={isTeacher}
+                  onChange={(e) => {
+                    setIsTeacher(e.target.checked);
+                    if (e.target.checked) {
+                      setStudentIdVerified(true);
+                      setStudentIdError("");
+                    } else {
+                      setStudentIdVerified(false);
+                    }
+                  }}
+                  className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                />
+                <div className="flex-1">
+                  <span className="font-medium text-gray-900">老师注册</span>
+                  <p className="text-xs text-gray-500 mt-0.5">勾选后无需填写学号、系、班级，默认赋予"老师"头衔</p>
+                </div>
+                {isTeacher && (
+                  <svg className="w-6 h-6 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                )}
+              </label>
+
               <label className="block text-sm font-medium text-gray-700 mb-3">
-                学号验证 <span className="text-red-500">*</span>
+                {isTeacher ? "工号 (可选)" : "学号验证"} <span className="text-red-500">{isTeacher ? "" : "*"}</span>
               </label>
               <div className="flex gap-3">
                 <div className="relative flex-1">
@@ -233,26 +388,35 @@ export default function RegisterPage() {
                     name="studentId"
                     type="text"
                     autoComplete="off"
-                    required
+                    required={!isTeacher}
                     value={studentId}
                     onChange={(e) => {
                       setStudentId(e.target.value);
-                      setStudentIdVerified(false);
+                      if (!isTeacher) {
+                        setStudentIdVerified(false);
+                      }
+                      if (studentIdError) validateStudentId(e.target.value);
                     }}
-                    disabled={verifyingStudentId || studentIdVerified}
-                    className="appearance-none rounded-xl relative block w-full pl-10 pr-3 py-2.5 border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 transition-all"
-                    placeholder="请输入学号"
+                    onBlur={(e) => validateStudentId(e.target.value)}
+                    disabled={verifyingStudentId || (studentIdVerified && !isTeacher)}
+                    className={`appearance-none rounded-xl relative block w-full pl-10 pr-3 py-2.5 border ${
+                      studentIdError && !studentIdVerified ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
+                    } placeholder-gray-400 text-gray-900 focus:outline-none focus:border-transparent disabled:bg-gray-100 transition-all`}
+                    placeholder={isTeacher ? "请输入工号 (可选)" : "请输入学号"}
+                    aria-describedby={studentIdError && !studentIdVerified ? "student-id-error" : undefined}
                   />
                 </div>
                 <button
                   type="button"
                   onClick={verifyStudentId}
-                  disabled={verifyingStudentId || studentIdVerified || !studentId.trim()}
+                  disabled={verifyingStudentId || (studentIdVerified && !isTeacher) || (!studentId.trim() && !isTeacher)}
                   className={`px-6 py-2.5 rounded-xl font-medium whitespace-nowrap transition-all duration-300 ${
                     studentIdVerified
                       ? "bg-green-500 text-white shadow-lg shadow-green-500/30"
                       : verifyingStudentId
                       ? "bg-gray-400 text-white"
+                      : isTeacher
+                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                       : "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/30 hover:shadow-xl hover:shadow-green-500/40"
                   } disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
@@ -269,19 +433,29 @@ export default function RegisterPage() {
                       <svg className="w-4 h-4 mr-1 inline" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
-                      已验证
+                      {isTeacher ? "已确认" : "已验证"}
                     </>
+                  ) : isTeacher ? (
+                    "无需验证"
                   ) : (
                     "验证学号"
                   )}
                 </button>
               </div>
+              {studentIdError && !studentIdVerified && (
+                <p id="student-id-error" className="mt-2 text-sm text-red-600 flex items-center gap-1">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  {studentIdError}
+                </p>
+              )}
               {studentIdVerified && (
                 <p className="mt-2 text-sm text-green-600 flex items-center gap-1">
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
-                  学号验证通过 - {verifiedSchoolName}
+                  学号验证通过 - {verifiedCampusName} · {verifiedDepartmentName}
                 </p>
               )}
             </div>
@@ -305,16 +479,33 @@ export default function RegisterPage() {
                     autoComplete="tel"
                     required
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="appearance-none rounded-xl relative block w-full pl-10 pr-3 py-2.5 border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                    placeholder="138****8888"
+                    onChange={(e) => {
+                      const formatted = formatPhone(e.target.value);
+                      setPhone(formatted);
+                      if (phoneError) validatePhone(formatted);
+                    }}
+                    onBlur={(e) => validatePhone(e.target.value)}
+                    className={`appearance-none rounded-xl relative block w-full pl-10 pr-3 py-2.5 border ${
+                      phoneError ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
+                    } placeholder-gray-400 text-gray-900 focus:outline-none focus:border-transparent transition-all`}
+                    placeholder="138 8888 8888"
+                    maxLength={14}
+                    aria-describedby={phoneError ? "phone-error" : undefined}
                   />
                 </div>
+                {phoneError && (
+                  <p id="phone-error" className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    {phoneError}
+                  </p>
+                )}
               </div>
 
               <div>
                 <label htmlFor="school" className="block text-sm font-medium text-gray-700 mb-1.5">
-                  学院
+                  校区 <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -323,23 +514,30 @@ export default function RegisterPage() {
                       <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
                     </svg>
                   </div>
-                  <input
+                  <select
                     id="school"
                     name="school"
-                    type="text"
                     value={school}
                     onChange={(e) => setSchool(e.target.value)}
-                    className="appearance-none rounded-xl relative block w-full pl-10 pr-3 py-2.5 border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                    placeholder="软件学院"
-                  />
+                    className="appearance-none rounded-xl relative block w-full pl-10 pr-10 py-2.5 border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white cursor-pointer"
+                  >
+                    <option value="">请选择校区</option>
+                    <option value="奎文">奎文校区</option>
+                    <option value="滨海">滨海校区</option>
+                  </select>
+                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                    <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
                 </div>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div>
+              <div className={isTeacher ? "hidden" : ""}>
                 <label htmlFor="major" className="block text-sm font-medium text-gray-700 mb-1.5">
-                  专业
+                  系 <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -351,15 +549,16 @@ export default function RegisterPage() {
                     id="major"
                     name="major"
                     type="text"
+                    required={!isTeacher}
                     value={major}
                     onChange={(e) => setMajor(e.target.value)}
                     className="appearance-none rounded-xl relative block w-full pl-10 pr-3 py-2.5 border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                    placeholder="软件工程"
+                    placeholder="计算机科学与技术系"
                   />
                 </div>
               </div>
 
-              <div>
+              <div className={isTeacher ? "hidden" : ""}>
                 <label htmlFor="classValue" className="block text-sm font-medium text-gray-700 mb-1.5">
                   班级
                 </label>
@@ -397,15 +596,70 @@ export default function RegisterPage() {
                   <input
                     id="password"
                     name="password"
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     autoComplete="new-password"
                     required
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="appearance-none rounded-xl relative block w-full pl-10 pr-3 py-2.5 border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      if (passwordError) validatePassword(e.target.value);
+                      if (confirmPassword && confirmPassword !== e.target.value) {
+                        setConfirmPasswordError("两次输入的密码不一致");
+                      } else {
+                        setConfirmPasswordError("");
+                      }
+                    }}
+                    onBlur={(e) => validatePassword(e.target.value)}
+                    className={`appearance-none rounded-xl relative block w-full pl-10 pr-12 py-2.5 border ${
+                      passwordError ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
+                    } placeholder-gray-400 text-gray-900 focus:outline-none focus:border-transparent transition-all`}
                     placeholder="至少 6 位"
+                    aria-describedby={passwordError ? "password-error" : "password-strength"}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 cursor-pointer transition-colors"
+                    aria-label={showPassword ? "隐藏密码" : "显示密码"}
+                  >
+                    {showPassword ? (
+                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                      </svg>
+                    ) : (
+                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    )}
+                  </button>
                 </div>
+                {/* 密码强度指示器 */}
+                {password && (
+                  <div id="password-strength" className="mt-2">
+                    <div className="flex gap-1 mb-1">
+                      {[1, 2, 3, 4].map((level) => (
+                        <div
+                          key={level}
+                          className={`h-1 flex-1 rounded-full transition-all duration-300 ${
+                            level <= passwordStrength.level ? passwordStrength.color : 'bg-gray-200'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <p className={`text-xs ${passwordStrength.level <= 2 ? 'text-red-600' : 'text-green-600'}`}>
+                      {passwordStrength.label}
+                    </p>
+                  </div>
+                )}
+                {passwordError && (
+                  <p id="password-error" className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    {passwordError}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -421,17 +675,59 @@ export default function RegisterPage() {
                   <input
                     id="confirmPassword"
                     name="confirmPassword"
-                    type="password"
+                    type={showConfirmPassword ? "text" : "password"}
                     autoComplete="new-password"
                     required
                     value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="appearance-none rounded-xl relative block w-full pl-10 pr-3 py-2.5 border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    onChange={(e) => {
+                      setConfirmPassword(e.target.value);
+                      if (confirmPasswordError || e.target.value !== password) {
+                        validateConfirmPassword(e.target.value);
+                      }
+                    }}
+                    onBlur={(e) => validateConfirmPassword(e.target.value)}
+                    className={`appearance-none rounded-xl relative block w-full pl-10 pr-12 py-2.5 border ${
+                      confirmPasswordError ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
+                    } placeholder-gray-400 text-gray-900 focus:outline-none focus:border-transparent transition-all`}
                     placeholder="再次输入密码"
+                    aria-describedby={confirmPasswordError ? "confirm-password-error" : undefined}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 cursor-pointer transition-colors"
+                    aria-label={showConfirmPassword ? "隐藏密码" : "显示密码"}
+                  >
+                    {showConfirmPassword ? (
+                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                      </svg>
+                    ) : (
+                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    )}
+                  </button>
                 </div>
+                {confirmPasswordError && (
+                  <p id="confirm-password-error" className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    {confirmPasswordError}
+                  </p>
+                )}
               </div>
             </div>
+
+            <CaptchaInput
+              value={captchaCode}
+              onChange={setCaptchaCode}
+              onError={setError}
+              label="验证码"
+              required
+            />
 
             <div>
               <button

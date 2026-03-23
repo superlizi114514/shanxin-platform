@@ -60,7 +60,7 @@ export default function CampusMapPage() {
 }
 
 function MapContent() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [buildings, setBuildings] = useState<BuildingMarker[]>([]);
@@ -69,6 +69,18 @@ function MapContent() {
   const [loading, setLoading] = useState(true);
   const [selectedCampus, setSelectedCampus] = useState<string>("kuwen"); // 默认奎文校区
   const [activeTab, setActiveTab] = useState<"map" | "list">("map");
+
+  // 加载状态 - 等待 session 验证
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <p className="mt-4 text-gray-600">加载中...</p>
+        </div>
+      </div>
+    );
+  }
 
   // 从 URL 参数读取校区设置（可选覆盖默认值）
   useEffect(() => {
@@ -134,17 +146,12 @@ function MapContent() {
   }, [buildings, handleSetDistanceReference]);
 
   if (!session) {
+    router.push("/login");
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900">请先登录</h1>
-          <p className="mt-2 text-gray-600">您需要登录后才能查看校园地图</p>
-          <button
-            onClick={() => router.push("/login")}
-            className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-          >
-            去登录
-          </button>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+          <p className="text-gray-600">正在跳转登录...</p>
         </div>
       </div>
     );

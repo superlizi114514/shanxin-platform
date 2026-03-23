@@ -1,0 +1,4 @@
+// Prisma config for SQLite
+export default {
+  schema: './prisma/schema.prisma',
+};

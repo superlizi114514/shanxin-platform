@@ -67,21 +67,21 @@ const getCurrentSeason = (): "winter-spring" | "summer-fall" => {
 };
 
 const courseColors = [
-  "bg-blue-500",
-  "bg-green-500",
-  "bg-yellow-500",
-  "bg-red-500",
-  "bg-purple-500",
-  "bg-pink-500",
-  "bg-indigo-500",
-  "bg-teal-500",
+  "from-blue-500 to-blue-600",
+  "from-emerald-500 to-emerald-600",
+  "from-violet-500 to-violet-600",
+  "from-amber-500 to-amber-600",
+  "from-rose-500 to-rose-600",
+  "from-fuchsia-500 to-fuchsia-600",
+  "from-indigo-500 to-indigo-600",
+  "from-teal-500 to-teal-600",
 ];
 
 const currentSeason = getCurrentSeason();
 const timeSlots = currentSeason === "winter-spring" ? winterSpringSlots : summerFallSlots;
 
 export default function SchedulePage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
@@ -102,6 +102,18 @@ export default function SchedulePage() {
   const [todayDate, setTodayDate] = useState<string>("");
   const [todayCourses, setTodayCourses] = useState<Course[]>([]);
   const [semesterStartDate, setSemesterStartDate] = useState<string>("");
+
+  // 加载状态 - 等待 session 验证
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <p className="mt-4 text-gray-600">加载中...</p>
+        </div>
+      </div>
+    );
+  }
 
   useEffect(() => {
     if (session?.user) {
@@ -327,17 +339,12 @@ export default function SchedulePage() {
   };
 
   if (!session) {
+    router.push("/login");
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900">请先登录</h1>
-          <p className="mt-2 text-gray-600">您需要登录后才能查看课表</p>
-          <button
-            onClick={() => router.push("/login")}
-            className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-          >
-            去登录
-          </button>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+          <p className="text-gray-600">正在跳转登录...</p>
         </div>
       </div>
     );
@@ -345,10 +352,40 @@ export default function SchedulePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <p className="mt-4 text-gray-600">加载课表中...</p>
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          {/* Header Skeleton */}
+          <div className="mb-8">
+            <div className="h-8 w-48 bg-gray-200 rounded animate-pulse mb-2"></div>
+            <div className="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
+          </div>
+
+          {/* Control Bar Skeleton */}
+          <div className="mb-6 flex gap-3">
+            <div className="h-10 w-32 bg-gray-200 rounded-lg animate-pulse"></div>
+            <div className="h-10 w-48 bg-gray-200 rounded-lg animate-pulse"></div>
+            <div className="h-10 w-24 bg-gray-200 rounded-lg animate-pulse ml-auto"></div>
+          </div>
+
+          {/* Today's Courses Skeleton */}
+          <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-emerald-50 rounded-xl border border-blue-200">
+            <div className="h-5 w-40 bg-gray-200 rounded animate-pulse mb-3"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-24 bg-gray-200 rounded-xl animate-pulse"></div>
+              ))}
+            </div>
+          </div>
+
+          {/* Week View Skeleton */}
+          <div className="bg-white rounded-xl shadow-md overflow-hidden">
+            <div className="h-10 bg-gray-100 border-b animate-pulse"></div>
+            <div className="divide-y divide-gray-100">
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
+                <div key={i} className="h-16 bg-gray-50 animate-pulse"></div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -358,47 +395,82 @@ export default function SchedulePage() {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">我的课表</h1>
+            <h1 className="text-3xl font-bold text-gray-900">📚 我的课表</h1>
             <p className="mt-2 text-gray-600">
-              共 {courses.length} 门课程
+              共 <span className="font-semibold text-blue-600">{courses.length}</span> 门课程
             </p>
             {todayDate && (
-              <p className="mt-1 text-sm text-blue-600 font-medium">
-                📅 今天：{formatDate(todayDate)}（{getDayName(new Date(todayDate).getDay() || 7)}）
-                {todayCourses.length > 0 && <span className="ml-2 text-green-600">· 今天有 {todayCourses.length} 节课</span>}
+              <p className="mt-1 text-sm text-blue-600 font-medium flex items-center gap-2">
+                <span className="flex items-center gap-1">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  {formatDate(todayDate)}（{getDayName(new Date(todayDate).getDay() || 7)}）
+                </span>
+                {todayCourses.length > 0 && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    {todayCourses.length} 节课
+                  </span>
+                )}
               </p>
             )}
           </div>
-          <div className="flex gap-3">
+          <div className="flex items-center gap-2">
             {isAdmin && (
               <button
                 onClick={() => setShowSemesterModal(true)}
-                className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors cursor-pointer shadow-sm hover:shadow"
                 title="设置开学日期"
               >
-                ⚙️ 学期设置
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                学期设置
               </button>
             )}
             <Link
               href="/reminders"
-              className="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-orange-50 text-orange-600 text-sm font-medium rounded-lg hover:bg-orange-100 transition-colors cursor-pointer border border-orange-200"
               title="查看课程提醒"
             >
-              🔔 提醒
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+              <span className="hidden sm:inline">提醒</span>
+            </Link>
+            <Link
+              href="/map"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-green-50 text-green-600 text-sm font-medium rounded-lg hover:bg-green-100 transition-colors cursor-pointer border border-green-200"
+              title="查看校园地图"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+              </svg>
+              <span className="hidden sm:inline">地图</span>
             </Link>
             <Link
               href="/schedule/import"
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors cursor-pointer shadow-sm hover:shadow"
             >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+              </svg>
               导入课表
             </Link>
-            {courses.length > 0 && (
+            {courses.length > 0 && isAdmin && (
               <button
                 onClick={handleClearAll}
-                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 text-sm font-medium rounded-lg hover:bg-red-100 transition-colors cursor-pointer border border-red-200"
               >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 4v3M4 7h16" />
+                </svg>
                 清空课表
               </button>
             )}
@@ -406,104 +478,114 @@ export default function SchedulePage() {
         </div>
 
         {/* View Mode Toggle */}
-        <div className="mb-6 flex flex-wrap gap-2 items-center">
-          <div className="flex items-center gap-2 bg-white rounded-md px-3 py-2 border border-gray-300">
+        <div className="mb-6 flex flex-wrap gap-3 items-center">
+          <div className="flex items-center gap-2 bg-white rounded-lg px-3 py-2 border border-gray-200 shadow-sm">
             <span className="text-sm font-medium text-gray-700">
               {currentSeason === "winter-spring" ? "❄️ 冬春季作息" : "🍀 夏秋季作息"}
             </span>
           </div>
 
-          <button
-            onClick={() => setViewMode("week")}
-            className={`px-4 py-2 rounded-md ${
-              viewMode === "week"
-                ? "bg-blue-600 text-white"
-                : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
-            }`}
-          >
-            周视图
-          </button>
-          <button
-            onClick={() => setViewMode("day")}
-            className={`px-4 py-2 rounded-md ${
-              viewMode === "day"
-                ? "bg-blue-600 text-white"
-                : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
-            }`}
-          >
-            日视图
-          </button>
-
-          {/* 周次选择 */}
-          <div className="ml-4 flex items-center gap-2 bg-white rounded-md px-3 py-2 border border-gray-300">
-            <span className="text-sm text-gray-600">📅 第</span>
-            <select
-              value={currentWeek}
-              onChange={(e) => setCurrentWeek(Number(e.target.value))}
-              className="text-sm border-none focus:ring-2 focus:ring-blue-500 bg-transparent font-medium"
-            >
-              {Array.from({ length: totalWeeks }, (_, i) => i + 1).map((week) => (
-                <option key={week} value={week}>
-                  {week}
-                </option>
-              ))}
-            </select>
-            <span className="text-sm text-gray-600">周</span>
-            <span className="text-xs text-gray-400 ml-2">({semesterName})</span>
-          </div>
-
-          {/* 快捷周次按钮 */}
-          <div className="flex gap-1 ml-2">
+          {/* 视图切换 - 分段控制器样式 */}
+          <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1" role="group" aria-label="视图切换">
             <button
-              onClick={() => setCurrentWeek(1)}
-              className={`px-2 py-1 rounded text-xs ${
-                currentWeek === 1
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              onClick={() => setViewMode("week")}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                viewMode === "week"
+                  ? "bg-white text-blue-600 shadow-sm"
+                  : "text-gray-600 hover:bg-gray-200 hover:text-gray-900"
               }`}
+              aria-pressed={viewMode === "week"}
             >
-              第 1 周
+              周视图
             </button>
             <button
-              onClick={() => setCurrentWeek(currentWeek > 1 ? currentWeek - 1 : 1)}
-              className="px-2 py-1 rounded text-xs bg-gray-100 text-gray-600 hover:bg-gray-200"
-              disabled={currentWeek <= 1}
+              onClick={() => setViewMode("day")}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                viewMode === "day"
+                  ? "bg-white text-blue-600 shadow-sm"
+                  : "text-gray-600 hover:bg-gray-200 hover:text-gray-900"
+              }`}
+              aria-pressed={viewMode === "day"}
             >
-              ◀
-            </button>
-            <button
-              onClick={() => setCurrentWeek(currentWeek < totalWeeks ? currentWeek + 1 : totalWeeks)}
-              className="px-2 py-1 rounded text-xs bg-gray-100 text-gray-600 hover:bg-gray-200"
-              disabled={currentWeek >= totalWeeks}
-            >
-              ▶
+              日视图
             </button>
           </div>
 
           {viewMode === "day" && (
-            <div className="flex gap-1 ml-4">
-              {dayNames.slice(1, 8).map((day, index) => (
-                <button
-                  key={day}
-                  onClick={() => setSelectedDay(index + 1)}
-                  className={`px-3 py-2 rounded-md text-sm ${
-                    selectedDay === index + 1
-                      ? "bg-blue-600 text-white"
-                      : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
-                  }`}
-                >
-                  {day}
-                </button>
-              ))}
+            <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1" role="group" aria-label="选择星期">
+              {dayNames.slice(1, 8).map((day, index) => {
+                const dayNum = index + 1;
+                const today = new Date();
+                const todayDayOfWeek = today.getDay() || 7;
+                const isToday = dayNum === todayDayOfWeek;
+                return (
+                  <button
+                    key={day}
+                    onClick={() => setSelectedDay(dayNum)}
+                    className={`px-3 py-2 rounded-md text-sm font-medium transition-all ${
+                      selectedDay === dayNum
+                        ? "bg-white text-blue-600 shadow-sm"
+                        : "text-gray-600 hover:bg-gray-200 hover:text-gray-900"
+                    } ${isToday ? "ring-2 ring-blue-500 ring-offset-1" : ""}`}
+                    aria-pressed={selectedDay === dayNum}
+                  >
+                    {day.replace("周", "")}
+                  </button>
+                );
+              })}
             </div>
           )}
+
+          {/* 周次选择器 */}
+          <div className="flex items-center gap-2 bg-white rounded-lg px-3 py-2 border border-gray-200 shadow-sm">
+            <button
+              onClick={() => setCurrentWeek(Math.max(1, currentWeek - 1))}
+              disabled={currentWeek <= 1}
+              className="p-2 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              aria-label="上一周"
+              title={currentWeek <= 1 ? "已是第一周" : undefined}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <select
+              value={currentWeek}
+              onChange={(e) => {
+                const value = parseInt(e.target.value);
+                if (!isNaN(value) && value >= 1 && value <= totalWeeks) {
+                  setCurrentWeek(value);
+                }
+              }}
+              className="border-0 bg-transparent text-center font-medium focus:ring-0 text-gray-900 cursor-pointer"
+              aria-label="选择周次"
+            >
+              {Array.from({ length: totalWeeks || 20 }, (_, i) => i + 1).map((week) => (
+                <option key={week} value={week}>第 {week} 周</option>
+              ))}
+            </select>
+            <button
+              onClick={() => setCurrentWeek(Math.min(totalWeeks, currentWeek + 1))}
+              disabled={currentWeek >= totalWeeks}
+              className="p-2 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              aria-label="下一周"
+              title={currentWeek >= totalWeeks ? `已是最后一周（共 ${totalWeeks} 周）` : undefined}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+
+          <div className="ml-auto" />
         </div>
 
         {/* 今日课程卡片 */}
         {todayCourses.length > 0 && (
-          <div className="mb-6 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg border border-blue-200 p-4">
+          <div className="mb-6 bg-gradient-to-r from-blue-50 to-emerald-50 rounded-xl border border-blue-200 p-4 shadow-sm">
             <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
-              📌 今日课程
+              <span className="text-xl">📌</span>
+              <span>今日课程</span>
               <span className="text-sm text-gray-500 font-normal">
                 {formatDate(todayDate)}（{getDayName(new Date(todayDate).getDay() || 7)}）· 第 {currentWeek} 周
               </span>
@@ -512,16 +594,41 @@ export default function SchedulePage() {
               {todayCourses.map((course, index) => (
                 <div
                   key={course.id}
-                  className={`${getCourseColor(course, index)} bg-opacity-10 rounded-lg p-3 border border-gray-200`}
+                  onClick={() => handleCourseClick(course)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      handleCourseClick(course);
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`查看${course.courseName}详情`}
+                  className={`group relative overflow-hidden rounded-xl bg-gradient-to-br ${getCourseColor(course, index)} p-4 cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`}
                 >
-                  <div className="font-medium text-gray-900">{course.courseName}</div>
-                  <div className="text-sm text-gray-600 mt-1">
-                    {course.period} · {formatWeekRange(course)}
+                  <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-8 -mt-8 transition-transform group-hover:scale-110" />
+                  <div className="relative">
+                    <div className="font-semibold text-white text-base">{course.courseName}</div>
+                    <div className="flex items-center gap-2 mt-2 text-sm text-white/90">
+                      <span className="flex items-center gap-1">
+                        <span className="text-white/70">🕐</span>
+                        {course.period}节
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <span className="text-white/70">📍</span>
+                        {course.classroom}
+                      </span>
+                    </div>
+                    {course.teacher && (
+                      <div className="text-xs text-white/80 mt-2 flex items-center gap-1">
+                        <span>👨‍🏫</span>
+                        {course.teacher}
+                      </div>
+                    )}
+                    <div className="text-xs text-white/70 mt-2">
+                      {formatWeekRange(course)}
+                    </div>
                   </div>
-                  <div className="text-sm text-gray-600 mt-1">📍 {course.classroom}</div>
-                  {course.teacher && (
-                    <div className="text-xs text-gray-500 mt-1">👨‍🏫 {course.teacher}</div>
-                  )}
                 </div>
               ))}
             </div>
@@ -650,59 +757,51 @@ export default function SchedulePage() {
                           <td
                             key={dayIndex}
                             className={`px-2 py-2 border-r border-b align-top ${
-                              isTodayColumn ? "bg-blue-50" : ""
+                              isTodayColumn ? "bg-blue-50/50" : ""
                             }`}
                             rowSpan={rowSpan > 1 ? rowSpan : undefined}
                           >
                             <div
-                              className={`${getCourseColor(course, courses.indexOf(course))} text-white rounded p-2 text-xs cursor-pointer hover:opacity-90`}
+                              className={`group relative overflow-hidden rounded-xl bg-gradient-to-br ${getCourseColor(course, courses.indexOf(course))} text-white p-3 text-xs cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1`}
                               style={{ minHeight: rowSpan > 1 ? `${rowSpan * 80 - 8}px` : '80px' }}
                               title={`${course.courseName}\n${course.teacher}\n${course.classroom}`}
                               onClick={() => handleCourseClick(course)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                  e.preventDefault();
+                                  handleCourseClick(course);
+                                }
+                              }}
+                              role="button"
+                              tabIndex={0}
+                              aria-label={`查看${course.courseName}详情`}
                             >
-                              <div className="font-semibold">
-                                {course.courseName}
-                              </div>
-                              <div className="mt-1">{course.classroom}</div>
-                              <div className="mt-1 opacity-80">
-                                {course.teacher}
-                              </div>
-                              <div className="mt-1 text-xs opacity-75">
-                                {course.period} | {formatWeekRange(course)}
-                              </div>
-                              <div className="mt-1 flex gap-1">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    router.push(
-                                      `/schedule/edit?id=${course.id}`
-                                    );
-                                  }}
-                                  className="opacity-75 hover:opacity-100"
-                                  title="编辑课程"
-                                >
-                                  ✏️
-                                </button>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleOpenReminderModal(course);
-                                  }}
-                                  className="opacity-75 hover:opacity-100"
-                                  title="设置提醒"
-                                >
-                                  🔔
-                                </button>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDeleteCourse(course.id);
-                                  }}
-                                  className="opacity-75 hover:opacity-100"
-                                  title="删除课程"
-                                >
-                                  🗑️
-                                </button>
+                              <div className="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full -mr-6 -mt-6 transition-transform group-hover:scale-110" />
+                              <div className="relative">
+                                <div className="font-semibold text-sm leading-tight mb-2">
+                                  {course.courseName}
+                                </div>
+                                <div className="space-y-1">
+                                  <div className="flex items-center gap-1.5 opacity-90">
+                                    <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 011.414-11.316l4.244 4.243a1.998 1.998 0 002.827 0l4.244-4.243a8 8 0 011.414 11.316z" />
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                    <span className="truncate">{course.classroom}</span>
+                                  </div>
+                                  {course.teacher && (
+                                    <div className="flex items-center gap-1.5 opacity-80">
+                                      <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                      </svg>
+                                      <span className="truncate">{course.teacher}</span>
+                                    </div>
+                                  )}
+                                  <div className="flex items-center gap-1.5 opacity-70 text-xs mt-2 pt-2 border-t border-white/20">
+                                    <span>🕐 {course.period}节</span>
+                                    <span className="truncate">{formatWeekRange(course)}</span>
+                                  </div>
+                                </div>
                               </div>
                             </div>
                           </td>

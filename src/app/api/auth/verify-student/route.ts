@@ -19,14 +19,28 @@ const prisma = new PrismaClient();
 // Valid enrollment years for current students (adjust as needed)
 const VALID_ENROLLMENT_YEARS = [2022, 2023, 2024, 2025];
 
-// School/Department codes for 山东信息职业技术学院
-const VALID_SCHOOL_CODES: Record<string, string> = {
+// Campus codes for 山东信息职业技术学院
+const VALID_CAMPUS_CODES: Record<string, string> = {
+  "01": "奎文校区",
+  "02": "滨海校区",
+  "03": "奎文校区",
+  "04": "滨海校区",
+  "05": "奎文校区",
+  "06": "滨海校区",
+  "07": "奎文校区",
+  "08": "滨海校区",
+  "09": "奎文校区",
+  "10": "滨海校区",
+};
+
+// Department codes
+const VALID_DEPARTMENT_CODES: Record<string, string> = {
   "01": "软件学院",
   "02": "信息工程学院",
   "03": "人工智能学院",
   "04": "大数据学院",
   "05": "物联网学院",
-  "06": " cyberspace 学院",
+  "06": "网络空间安全学院",
   "07": "继续教育学院",
   "08": "基础教学部",
   "09": "马克思主义学院",
@@ -40,8 +54,10 @@ function validateStudentIdFormat(studentId: string): {
   valid: boolean;
   error?: string;
   enrollmentYear?: number;
-  schoolCode?: string;
-  schoolName?: string;
+  campusCode?: string;
+  campusName?: string;
+  departmentCode?: string;
+  departmentName?: string;
 } {
   if (!studentId || studentId.trim().length === 0) {
     return { valid: false, error: "学号不能为空" };
@@ -53,7 +69,7 @@ function validateStudentIdFormat(studentId: string): {
   const standardFormat = /^(\d{4})(\d{2})(\d{4})$/.exec(trimmedId);
   if (standardFormat) {
     const enrollmentYear = parseInt(standardFormat[1], 10);
-    const schoolCode = standardFormat[2];
+    const departmentCode = standardFormat[2];
 
     // Validate enrollment year
     if (!VALID_ENROLLMENT_YEARS.includes(enrollmentYear)) {
@@ -63,20 +79,24 @@ function validateStudentIdFormat(studentId: string): {
       };
     }
 
-    // Validate school code
-    const schoolName = VALID_SCHOOL_CODES[schoolCode];
-    if (!schoolName) {
+    // Validate department code and get campus
+    const departmentName = VALID_DEPARTMENT_CODES[departmentCode];
+    const campusName = VALID_CAMPUS_CODES[departmentCode];
+
+    if (!departmentName) {
       return {
         valid: false,
-        error: "无效的学院代码"
+        error: "无效的系部代码"
       };
     }
 
     return {
       valid: true,
       enrollmentYear,
-      schoolCode,
-      schoolName,
+      departmentCode,
+      departmentName,
+      campusCode: VALID_CAMPUS_CODES[departmentCode] ? departmentCode : undefined,
+      campusName: campusName || "奎文校区", // Default campus if not specified
     };
   }
 
@@ -85,7 +105,8 @@ function validateStudentIdFormat(studentId: string): {
   if (altFormat) {
     return {
       valid: true,
-      schoolName: "山东信息职业技术学院",
+      campusName: "奎文校区",
+      departmentName: "继续教育学院",
     };
   }
 
@@ -127,7 +148,8 @@ export async function POST(request: NextRequest) {
         {
           error: "该学号已被注册",
           valid: false,
-          schoolName: formatValidation.schoolName,
+          campusName: formatValidation.campusName,
+          departmentName: formatValidation.departmentName,
         },
         { status: 400 }
       );
@@ -143,7 +165,8 @@ export async function POST(request: NextRequest) {
         {
           error: "该学号已完成验证",
           valid: false,
-          schoolName: formatValidation.schoolName,
+          campusName: formatValidation.campusName,
+          departmentName: formatValidation.departmentName,
         },
         { status: 400 }
       );
@@ -153,8 +176,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       valid: true,
       message: "学号验证通过",
-      schoolName: formatValidation.schoolName,
-      schoolCode: formatValidation.schoolCode,
+      campusName: formatValidation.campusName,
+      campusCode: formatValidation.campusCode,
+      departmentName: formatValidation.departmentName,
+      departmentCode: formatValidation.departmentCode,
       enrollmentYear: formatValidation.enrollmentYear,
     });
 
@@ -170,14 +195,21 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET() {
-  // Return list of valid schools for frontend dropdown
-  const schools = Object.entries(VALID_SCHOOL_CODES).map(([code, name]) => ({
+  // Return list of valid campuses and departments for frontend dropdown
+  const campuses = Object.entries(VALID_CAMPUS_CODES).map(([code, name]) => ({
     code,
     name,
   }));
 
+  const departments = Object.entries(VALID_DEPARTMENT_CODES).map(([code, name]) => ({
+    code,
+    name,
+    campus: VALID_CAMPUS_CODES[code],
+  }));
+
   return NextResponse.json({
-    schools,
+    campuses,
+    departments,
     enrollmentYears: VALID_ENROLLMENT_YEARS,
   });
 }

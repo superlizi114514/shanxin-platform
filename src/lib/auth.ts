@@ -1,9 +1,7 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
-
-const prisma = new PrismaClient();
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -49,21 +47,24 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         };
       },
     }),
-    // Google and GitHub providers are optional - uncomment when configured
-    // Google({
-    //   clientId: process.env.GOOGLE_CLIENT_ID || "",
-    //   clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
-    // }),
-    // GitHub({
-    //   clientId: process.env.GITHUB_CLIENT_ID || "",
-    //   clientSecret: process.env.GITHUB_CLIENT_SECRET || "",
-    // }),
   ],
   session: {
     strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   pages: {
     signIn: "/login",
+  },
+  cookies: {
+    sessionToken: {
+      name: `next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
   },
   callbacks: {
     async signIn({ user, account, profile }) {

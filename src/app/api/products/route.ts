@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { auth } from "@/lib/auth";
+import { productQuerySchema, createProductSchema } from "@/lib/validators/product";
+import { z } from "zod";
 
 const prisma = new PrismaClient();
 
@@ -8,19 +10,27 @@ const prisma = new PrismaClient();
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "20");
-    const category = searchParams.get("category");
-    const search = searchParams.get("search");
-    const status = searchParams.get("status");
-    const schoolId = searchParams.get("schoolId");
 
+    // 验证查询参数
+    const queryParams = productQuerySchema.parse({
+      page: searchParams.get("page"),
+      limit: searchParams.get("limit"),
+      category: searchParams.get("category"),
+      search: searchParams.get("search"),
+      status: searchParams.get("status"),
+      schoolId: searchParams.get("schoolId"),
+      minPrice: searchParams.get("minPrice"),
+      maxPrice: searchParams.get("maxPrice"),
+    });
+
+    const { page, limit, category, search, status, schoolId, minPrice, maxPrice } = queryParams;
     const skip = (page - 1) * limit;
 
     const where: {
       category?: string;
       status?: string;
       schoolId?: string;
+      price?: { gte?: number; lte?: number };
       OR?: Array<{ title: { contains: string } } | { description: { contains: string } }>;
     } = {};
 
@@ -34,6 +44,13 @@ export async function GET(request: NextRequest) {
 
     if (schoolId) {
       where.schoolId = schoolId;
+    }
+
+    // 价格范围筛选
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      where.price = {};
+      if (minPrice !== undefined) where.price.gte = minPrice;
+      if (maxPrice !== undefined) where.price.lte = maxPrice;
     }
 
     if (search) {
@@ -79,6 +96,13 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      const messages = (error as z.ZodError).issues.map(e => e.message).join(', ');
+      return NextResponse.json(
+        { error: messages || "Validation failed" },
+        { status: 400 }
+      );
+    }
     console.error("Error fetching products:", error);
     return NextResponse.json(
       { error: "Failed to fetch products" },
@@ -101,20 +125,16 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { title, description, price, category, images, schoolId } = body;
 
-    if (!title || !description || !price || !category) {
-      return NextResponse.json(
-        { error: "Title, description, price, and category are required" },
-        { status: 400 }
-      );
-    }
+    // 验证请求体
+    const validatedData = createProductSchema.parse(body);
+    const { title, description, price, category, images, schoolId } = validatedData;
 
     const product = await prisma.product.create({
       data: {
         title,
         description,
-        price: parseFloat(price),
+        price: typeof price === 'string' ? parseFloat(price) : price,
         category,
         sellerId: session.user.id,
         schoolId: schoolId || null,
@@ -136,6 +156,13 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(product, { status: 201 });
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      const messages = (error as z.ZodError).issues.map(e => e.message).join(', ');
+      return NextResponse.json(
+        { error: messages || "Validation failed" },
+        { status: 400 }
+      );
+    }
     console.error("Error creating product:", error);
     return NextResponse.json(
       { error: "Failed to create product" },

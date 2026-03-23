@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { parseScheduleText } from "@/lib/schedule-parser";
+import { parseScheduleText, type CourseInput } from "@/lib/schedule-parser";
 import { findOrCreateClassroom } from "@/lib/pdf-parser";
 import { prisma } from "@/../prisma";
 
@@ -50,21 +50,6 @@ export async function POST(request: NextRequest) {
   }
 }
 
-interface CourseInput {
-  courseName: string;
-  teacher?: string | null;
-  classroom: string;
-  dayOfWeek: number;
-  startTime: string;
-  endTime: string;
-  period?: string | null;
-  weekStart: number;
-  weekEnd: number;
-  weekPattern?: string | null;
-  notes?: string | null;
-  userId: string;
-}
-
 async function bulkImportCourses(courses: CourseInput[]) {
   const imported = [];
 
@@ -78,19 +63,19 @@ async function bulkImportCourses(courses: CourseInput[]) {
 
     const created = await prisma.course.create({
       data: {
-        userId: course.userId,
+        userId: course.userId!,
         courseName: course.courseName,
         teacher: course.teacher,
-        classroom: course.classroom,
+        classroom: course.classroom || "",
         classroomId: classroomId || null,
         dayOfWeek: course.dayOfWeek,
-        startTime: course.startTime,
-        endTime: course.endTime,
-        period: course.period,
-        weekStart: course.weekStart,
-        weekEnd: course.weekEnd,
-        weekPattern: course.weekPattern,
-        notes: course.notes,
+        startTime: course.startTime ?? "",
+        endTime: course.endTime ?? "",
+        period: course.weekRange,
+        weekStart: course.weekStart ?? 1,
+        weekEnd: course.weekEnd ?? 20,
+        weekPattern: course.weekType,
+        notes: course.note,
       },
       include: {
         location: true,

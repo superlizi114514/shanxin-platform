@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { auth } from "@/lib/auth";
+import { orderQuerySchema, createOrderSchema } from "@/lib/validators/order";
+import { z } from "zod";
+import { validateCsrfToken } from "@/middleware/csrf";
 
 const prisma = new PrismaClient();
 
@@ -16,11 +19,16 @@ export async function GET(request: NextRequest) {
     }
 
     const searchParams = request.nextUrl.searchParams;
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "20");
-    const role = searchParams.get("role"); // buyer | seller
-    const status = searchParams.get("status");
 
+    // 验证查询参数
+    const queryParams = orderQuerySchema.parse({
+      page: searchParams.get("page"),
+      limit: searchParams.get("limit"),
+      role: searchParams.get("role"),
+      status: searchParams.get("status"),
+    });
+
+    const { page, limit, role, status } = queryParams;
     const skip = (page - 1) * limit;
 
     const where: {
@@ -86,6 +94,13 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      const messages = (error as z.ZodError).issues.map(e => e.message).join(', ');
+      return NextResponse.json(
+        { error: messages || "Validation failed" },
+        { status: 400 }
+      );
+    }
     console.error("Error fetching orders:", error);
     return NextResponse.json(
       { error: "Failed to fetch orders" },
@@ -107,15 +122,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
-    const { sellerId, items, remark } = body;
-
-    if (!sellerId || !items || !Array.isArray(items) || items.length === 0) {
+    // 验证 CSRF Token
+    if (!validateCsrfToken(request)) {
       return NextResponse.json(
-        { error: "Seller ID and items are required" },
-        { status: 400 }
+        { error: "CSRF token missing or invalid" },
+        { status: 403 }
       );
     }
+
+    const body = await request.json();
+
+    // 验证请求体
+    const validatedData = createOrderSchema.parse(body);
+    const { sellerId, items, note } = validatedData;
 
     // 验证商品并计算总价
     interface OrderItem {
@@ -174,7 +193,7 @@ export async function POST(request: NextRequest) {
         buyerId: session.user.id,
         sellerId,
         totalAmount,
-        remark: remark || null,
+        remark: note || null,
         items: {
           create: items.map((item: OrderItem) => {
             const product = products.find((p) => p.id === item.productId);
@@ -219,6 +238,13 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(order, { status: 201 });
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      const messages = (error as z.ZodError).issues.map(e => e.message).join(', ');
+      return NextResponse.json(
+        { error: messages || "Validation failed" },
+        { status: 400 }
+      );
+    }
     console.error("Error creating order:", error);
     return NextResponse.json(
       { error: "Failed to create order" },

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import AuthProvider from "@/components/AuthProvider";
 import MonitoringProvider from "@/components/MonitoringProvider";
+import { Analytics } from "@vercel/analytics/react";
+import { Toaster } from "sonner";
 
 // 使用系统字体栈替代 Google Fonts，优化国内访问速度
 // 系统字体栈无需网络请求，加载更快，避免 Google Fonts 被墙问题
@@ -93,6 +95,8 @@ export default function RootLayout({
         <MonitoringProvider>
           <AuthProvider>{children}</AuthProvider>
         </MonitoringProvider>
+        <Analytics />
+        <Toaster position="top-right" richColors />
       </body>
     </html>
   );
