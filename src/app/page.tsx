@@ -25,14 +25,6 @@ const stations = [
     color: "from-green-500 to-green-600",
   },
   {
-    id: "reminders",
-    name: "课程提醒",
-    description: "上课提醒、教室导航、时间管理",
-    icon: "🔔",
-    href: "/reminders",
-    color: "from-orange-500 to-orange-600",
-  },
-  {
     id: "map",
     name: "校园地图",
     description: "校园建筑位置、距离计算、步行导航",
@@ -166,7 +158,7 @@ export default function Home() {
               欢迎来到校园门户平台
             </h2>
             <p className="text-sm sm:text-base md:text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed px-2">
-              一站式校园服务入口，集成<span className="font-semibold text-blue-600">二手交易</span>、<span className="font-semibold text-green-600">课程管理</span>、<span className="font-semibold text-orange-600">课程提醒</span>、<span className="font-semibold text-teal-600">校园地图</span>、<span className="font-semibold text-purple-600">商家点评</span>、<span className="font-semibold text-pink-600">新闻资讯</span>、<span className="font-semibold text-cyan-600">信息大全</span>七大核心功能
+              一站式校园服务入口，集成<span className="font-semibold text-blue-600">二手交易</span>、<span className="font-semibold text-green-600">课程管理</span>、<span className="font-semibold text-teal-600">校园地图</span>、<span className="font-semibold text-purple-600">商家点评</span>、<span className="font-semibold text-pink-600">新闻资讯</span>、<span className="font-semibold text-cyan-600">信息大全</span>六大核心功能
             </p>
           </div>
         </div>

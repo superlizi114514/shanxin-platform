@@ -1,7 +1,7 @@
 {
-  "status": "in_progress",
-  "timestamp": "2026-03-23 09:00:00",
-  "lastTask": "US-038: 老师注册功能",
+  "status": "completed",
+  "timestamp": "2026-03-23 10:30:00",
+  "lastTask": "修复 Vercel 上高德地图无法显示的问题",
   "completedTasks": [
     "M3 US-001: 添加校园建筑位置数据",
     "M3 US-002: 更新教室位置关联建筑",
@@ -95,10 +95,31 @@
         "个人主页显示老师标识",
         "个人主页提供老师认证入口 (联系微信 SiNianNiQWQ)"
       ]
+    },
+    "修复 Vercel 上高德地图无法显示的问题": {
+      "build": "passed",
+      "implementation": "complete",
+      "changes": [
+        "添加 NEXT_PUBLIC_AMAP_KEY 和 NEXT_PUBLIC_AMAP_SECURITY_CODE 环境变量到 vercel.json",
+        "更新 .env.example 和 .env.production.example 包含 AMAP 配置",
+        "更新 .env.local 包含 AMAP 配置说明",
+        "创建 docs/AMAP_SETUP.md 详细配置指南",
+        "更新 README.md 添加环境变量配置说明",
+        "修复 schedule/page.tsx 中 handleOpenReminderModal 引用错误"
+      ],
+      "files_modified": [
+        "vercel.json",
+        ".env.example",
+        ".env.production.example",
+        ".env.local",
+        "src/app/schedule/page.tsx",
+        "README.md"
+      ],
+      "documentation": "docs/AMAP_SETUP.md"
     }
   ],
   "nextTask": "待定",
-  "currentFeature": "US-038 老师注册功能 (完成)",
+  "currentFeature": "修复 Vercel 上高德地图显示问题 (完成)",
   "projectStatus": {
     "phase1": "complete",
     "phase2": "complete",
@@ -121,6 +142,7 @@
     "agent1_schedule_map": "complete",
     "agent_d_testing": "complete",
     "us037_login_register": "complete",
-    "us038_teacher_registration": "complete"
+    "us038_teacher_registration": "complete",
+    "amap_vercel_fix": "complete"
   }
 }

@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import { calculateDistance, estimateWalkingTime, formatDistance, formatWalkingTime } from "@/lib/distance";
 import dynamic from "next/dynamic";
 import { CAMPUS_CONFIG, BUILDING_ICONS } from "@/constants/map-constants";
+import { NavigationConfirmDialog } from "@/components/NavigationConfirmDialog";
 
 // 使用动态导入来避免 SSR 问题
 const MapWrapper = dynamic(() => import("@/components/MapWrapper").then(mod => mod.MapWrapper), {
@@ -69,6 +70,18 @@ function MapContent() {
   const [loading, setLoading] = useState(true);
   const [selectedCampus, setSelectedCampus] = useState<string>("kuwen"); // 默认奎文校区
   const [activeTab, setActiveTab] = useState<"map" | "list">("map");
+  const [showNavigationDialog, setShowNavigationDialog] = useState(false);
+  const [currentLocation, setCurrentLocation] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+  const [destination, setDestination] = useState<{
+    building: string;
+    roomNumber: string;
+    floor: number;
+    roomName?: string;
+    coordinates?: string;
+  } | null>(null);
 
   // 加载状态 - 等待 session 验证
   if (status === "loading") {
@@ -89,6 +102,51 @@ function MapContent() {
       setSelectedCampus(campusParam);
     }
   }, [searchParams]);
+
+  // 监听课表跳转，显示导航确认弹窗
+  useEffect(() => {
+    const from = searchParams?.get("from");
+
+    if (from !== "schedule") return;
+
+    const coordinates = searchParams?.get("coordinates");
+    const building = searchParams?.get("building");
+    const roomNumber = searchParams?.get("roomNumber");
+    const floor = searchParams?.get("floor");
+    const roomName = searchParams?.get("roomName");
+
+    if (coordinates && building && roomNumber && floor) {
+      // 设置目的地
+      setDestination({
+        building,
+        roomNumber,
+        floor: parseInt(floor, 10),
+        roomName: roomName || undefined,
+        coordinates,
+      });
+
+      // 获取当前位置
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            setCurrentLocation({
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+            });
+            // 显示弹窗
+            setShowNavigationDialog(true);
+          },
+          () => {
+            // 获取位置失败，仍显示弹窗（不计算距离）
+            setShowNavigationDialog(true);
+          }
+        );
+      } else {
+        // 不支持地理定位，仍显示弹窗
+        setShowNavigationDialog(true);
+      }
+    }
+  }, [searchParams?.get("from"), searchParams?.get("coordinates")]);
 
   useEffect(() => {
     fetchBuildings();
@@ -131,6 +189,31 @@ function MapContent() {
   const handleSetDistanceReference = useCallback((marker: BuildingMarker) => {
     setDistanceReference(marker);
   }, []);
+
+  // 计算距离和步行时间
+  const calculateDistanceAndTime = () => {
+    if (!currentLocation || !destination?.coordinates) {
+      return { distance: undefined, walkingTime: undefined };
+    }
+
+    const [lat, lng] = destination.coordinates.split(",").map(Number);
+    const distance = calculateDistance(
+      currentLocation.latitude,
+      currentLocation.longitude,
+      lat,
+      lng
+    );
+    const walkingTime = estimateWalkingTime(distance);
+
+    return { distance, walkingTime };
+  };
+
+  // 处理导航确认
+  const handleNavigationConfirm = () => {
+    setShowNavigationDialog(false);
+    // TODO: 集成具体导航逻辑（如调用高德地图 API）
+    console.log("开启导航到:", destination);
+  };
 
   // 暴露全局函数供高德地图信息窗口调用
   useEffect(() => {
@@ -361,6 +444,25 @@ function MapContent() {
           </div>
         </div>
       </main>
+
+      {/* 导航确认弹窗 */}
+      {destination && (
+        <NavigationConfirmDialog
+          open={showNavigationDialog}
+          onClose={() => {
+            setShowNavigationDialog(false);
+            setDestination(null);
+          }}
+          onConfirm={handleNavigationConfirm}
+          destination={{
+            building: destination.building,
+            roomNumber: destination.roomNumber,
+            floor: destination.floor,
+            roomName: destination.roomName,
+          }}
+          {...calculateDistanceAndTime()}
+        />
+      )}
     </div>
   );
 }

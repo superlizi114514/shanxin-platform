@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import { MapPin } from "lucide-react";
 
 interface Course {
   id: string;
@@ -20,8 +21,6 @@ interface Course {
   weekList?: number[]; // 周次列表
   notes: string | null;
   color: string | null;
-  reminderEnabled?: boolean;
-  reminderMinutes?: number;
   location?: {
     building: string;
     floor: number;
@@ -89,11 +88,27 @@ export default function SchedulePage() {
   const [selectedDay, setSelectedDay] = useState(1);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [showLocationModal, setShowLocationModal] = useState(false);
-  const [showReminderModal, setShowReminderModal] = useState(false);
-  const [reminderEnabled, setReminderEnabled] = useState(false);
-  const [reminderMinutes, setReminderMinutes] = useState<number>(10);
   const [isAdmin, setIsAdmin] = useState(false);
   const [showSemesterModal, setShowSemesterModal] = useState(false);
+  const [toast, setToast] = useState<{ show: boolean; message: string }>({ show: false, message: "" });
+  const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Toast 自动关闭
+  useEffect(() => {
+    if (toastTimeoutRef.current) {
+      clearTimeout(toastTimeoutRef.current);
+    }
+    if (toast.show) {
+      toastTimeoutRef.current = setTimeout(() => {
+        setToast({ show: false, message: "" });
+      }, 3000);
+    }
+    return () => {
+      if (toastTimeoutRef.current) {
+        clearTimeout(toastTimeoutRef.current);
+      }
+    };
+  }, [toast.show]);
 
   // 周次相关状态
   const [currentWeek, setCurrentWeek] = useState<number>(1);
@@ -214,52 +229,50 @@ export default function SchedulePage() {
     }
   };
 
-  const handleCourseClick = (course: Course) => {
-    setSelectedCourse(course);
-    if (course.location || course.classroom) {
-      setShowLocationModal(true);
+  const handleCourseClick = useCallback((course: Course) => {
+    // 解析教室编号，提取建筑信息
+    // 格式：k1-101, k1101, k2-201 等，k 后面的数字表示几号教学楼
+    const parseClassroom = (classroom: string) => {
+      const match = classroom.match(/^k(\d+)(?:-(\d+))?$/i);
+      if (match) {
+        const buildingNum = match[1];
+        const roomNum = match[2] || '';
+        return {
+          building: `${buildingNum}号教学楼`,
+          roomNumber: roomNum || classroom,
+        };
+      }
+      return null;
+    };
+
+    // 检查是否有位置信息
+    const hasLocation = course.location?.coordinates || course.classroom;
+
+    if (!hasLocation) {
+      // 显示提示：该课程暂无位置信息
+      setToast({ show: true, message: "该课程暂无位置信息" });
+      return;
     }
-  };
+
+    // 解析教室编号获取建筑信息
+    const parsedLocation = course.classroom ? parseClassroom(course.classroom) : null;
+
+    // 构建 URL 参数
+    const params = new URLSearchParams({
+      building: course.location?.building || parsedLocation?.building || course.classroom,
+      roomNumber: course.location?.roomNumber || parsedLocation?.roomNumber || "",
+      coordinates: course.location?.coordinates || "",
+      floor: course.location?.floor?.toString() || "",
+      from: "schedule", // 标记来源，用于地图页面判断是否显示导航确认
+    });
+
+    // 跳转到地图页面
+    router.push(`/map?${params.toString()}`);
+  }, [router]);
 
   const handleCloseModal = () => {
     setShowLocationModal(false);
-    setShowReminderModal(false);
     setSelectedCourse(null);
-  };
-
-  const handleOpenReminderModal = (course: Course) => {
-    setSelectedCourse(course);
-    setReminderEnabled(course.reminderEnabled ?? false);
-    setReminderMinutes(course.reminderMinutes ?? 10);
-    setShowReminderModal(true);
-  };
-
-  const handleSaveReminder = async () => {
-    if (!selectedCourse) return;
-
-    try {
-      const response = await fetch(`/api/courses/${selectedCourse.id}/reminder`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          reminderEnabled,
-          reminderMinutes,
-        }),
-      });
-
-      if (response.ok) {
-        // 更新本地状态
-        setCourses(courses.map((c) =>
-          c.id === selectedCourse.id
-            ? { ...c, reminderEnabled, reminderMinutes }
-            : c
-        ));
-        setShowReminderModal(false);
-        setSelectedCourse(null);
-      }
-    } catch (error) {
-      console.error("保存提醒设置失败:", error);
-    }
   };
 
   const getCourseColor = (course: Course, index: number) => {
@@ -435,16 +448,6 @@ export default function SchedulePage() {
               </button>
             )}
             <Link
-              href="/reminders"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-orange-50 text-orange-600 text-sm font-medium rounded-lg hover:bg-orange-100 transition-colors cursor-pointer border border-orange-200"
-              title="查看课程提醒"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-              </svg>
-              <span className="hidden sm:inline">提醒</span>
-            </Link>
-            <Link
               href="/map"
               className="inline-flex items-center gap-2 px-4 py-2 bg-green-50 text-green-600 text-sm font-medium rounded-lg hover:bg-green-100 transition-colors cursor-pointer border border-green-200"
               title="查看校园地图"
@@ -617,6 +620,9 @@ export default function SchedulePage() {
                       <span className="flex items-center gap-1">
                         <span className="text-white/70">📍</span>
                         {course.classroom}
+                        {course.location?.coordinates && (
+                          <MapPin className="w-3 h-3 text-white/90" />
+                        )}
                       </span>
                     </div>
                     {course.teacher && (
@@ -788,6 +794,9 @@ export default function SchedulePage() {
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                     </svg>
                                     <span className="truncate">{course.classroom}</span>
+                                    {course.location?.coordinates && (
+                                      <MapPin className="w-3 h-3 flex-shrink-0 opacity-90" />
+                                    )}
                                   </div>
                                   {course.teacher && (
                                     <div className="flex items-center gap-1.5 opacity-80">
@@ -854,6 +863,9 @@ export default function SchedulePage() {
                         </h3>
                         <p className="text-sm opacity-90 mt-1">
                           {course.startTime} - {course.endTime} | {course.classroom}
+                          {course.location?.coordinates && (
+                            <MapPin className="w-4 h-4 inline ml-1 opacity-90" />
+                          )}
                         </p>
                         {course.teacher && (
                           <p className="text-sm opacity-75 mt-1">
@@ -879,16 +891,6 @@ export default function SchedulePage() {
                           title="编辑课程"
                         >
                           ✏️
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleOpenReminderModal(course);
-                          }}
-                          className="opacity-75 hover:opacity-100"
-                          title="设置提醒"
-                        >
-                          🔔
                         </button>
                         <button
                           onClick={(e) => {
@@ -977,98 +979,6 @@ export default function SchedulePage() {
         </div>
       )}
 
-      {/* Reminder Modal */}
-      {showReminderModal && selectedCourse && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
-            <div className="px-6 py-4 border-b flex justify-between items-center">
-              <h3 className="text-lg font-bold text-gray-900">
-                课程提醒设置
-              </h3>
-              <button
-                onClick={handleCloseModal}
-                className="text-gray-400 hover:text-gray-600 text-2xl"
-              >
-                ×
-              </button>
-            </div>
-            <div className="p-6">
-              <div className="mb-4">
-                <h4 className="font-semibold text-gray-900 mb-2">
-                  {selectedCourse.courseName}
-                </h4>
-                <p className="text-sm text-gray-600">
-                  {dayNames[selectedCourse.dayOfWeek]} {selectedCourse.startTime} - {selectedCourse.endTime}
-                </p>
-              </div>
-
-              <div className="mb-6">
-                <label className="flex items-center justify-between mb-4 p-4 bg-gray-50 rounded-lg cursor-pointer">
-                  <span className="font-medium text-gray-900">启用提醒</span>
-                  <input
-                    type="checkbox"
-                    checked={reminderEnabled}
-                    onChange={(e) => setReminderEnabled(e.target.checked)}
-                    className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
-                  />
-                </label>
-
-                {reminderEnabled && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      提前提醒时间
-                    </label>
-                    <div className="grid grid-cols-4 gap-2">
-                      {[5, 10, 15, 30].map((mins) => (
-                        <button
-                          key={mins}
-                          onClick={() => setReminderMinutes(mins)}
-                          className={`px-4 py-2 rounded-md text-sm font-medium ${
-                            reminderMinutes === mins
-                              ? "bg-blue-600 text-white"
-                              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                          }`}
-                        >
-                          {mins}分钟
-                        </button>
-                      ))}
-                      {[60, 90, 120].map((mins) => (
-                        <button
-                          key={mins}
-                          onClick={() => setReminderMinutes(mins)}
-                          className={`px-4 py-2 rounded-md text-sm font-medium ${
-                            reminderMinutes === mins
-                              ? "bg-blue-600 text-white"
-                              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                          }`}
-                        >
-                          {mins >= 60 ? `${mins / 60}小时` : `${mins}分钟`}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex gap-3">
-                <button
-                  onClick={handleSaveReminder}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                >
-                  保存设置
-                </button>
-                <button
-                  onClick={handleCloseModal}
-                  className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
-                >
-                  取消
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* 学期设置模态框 */}
       {showSemesterModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -1084,6 +994,18 @@ export default function SchedulePage() {
                 setShowSemesterModal(false);
               }}
             />
+          </div>
+        </div>
+      )}
+
+      {/* Toast 提示 */}
+      {toast.show && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 bg-gray-800 text-white px-6 py-3 rounded-lg shadow-lg animate-fade-in-down">
+          <div className="flex items-center gap-2">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>{toast.message}</span>
           </div>
         </div>
       )}

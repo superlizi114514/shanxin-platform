@@ -3,6 +3,7 @@ import "./globals.css";
 import AuthProvider from "@/components/AuthProvider";
 import MonitoringProvider from "@/components/MonitoringProvider";
 import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Toaster } from "sonner";
 
 // 使用系统字体栈替代 Google Fonts，优化国内访问速度
@@ -96,6 +97,7 @@ export default function RootLayout({
           <AuthProvider>{children}</AuthProvider>
         </MonitoringProvider>
         <Analytics />
+        <SpeedInsights />
         <Toaster position="top-right" richColors />
       </body>
     </html>

@@ -17,8 +17,6 @@ interface Course {
   weekStart: number;
   weekEnd: number;
   color: string | null;
-  reminderEnabled?: boolean;
-  reminderMinutes?: number;
 }
 
 const dayNames = ["", "周一", "周二", "周三", "周四", "周五", "周六", "周日"];
@@ -168,21 +166,6 @@ export default function MySchedulePage() {
               <div>
                 <div className="text-3xl font-bold text-green-600">第{currentWeek}周</div>
                 <div className="text-gray-600 text-sm mt-1">当前周次</div>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white/80 backdrop-blur-lg rounded-xl shadow-md p-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-purple-100 rounded-full">
-                <svg className="w-8 h-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                </svg>
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-purple-600">
-                  {courses.filter((c) => c.reminderEnabled).length}
-                </div>
-                <div className="text-gray-600 text-sm mt-1">已启用提醒</div>
               </div>
             </div>
           </div>

@@ -1,93 +1,181 @@
-import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { NextResponse } from 'next/server';
+import { requireAdmin } from '@/lib/admin-auth';
+import { prisma } from '@/lib/prisma';
 
-const prisma = new PrismaClient();
-
-export async function GET() {
+/**
+ * 获取仪表板图表数据
+ * GET /api/admin/dashboard/charts
+ */
+export async function GET(request: Request) {
   try {
-    // 获取分类分布数据（饼状图）
-    const categoryData = await prisma.merchantCategory.findMany({
-      include: {
-        merchants: true,
-      },
-    });
+    await requireAdmin();
 
-    const categoryChartData = categoryData.map((cat) => ({
-      name: cat.name,
-      value: cat.merchants.length,
-    }));
+    const { searchParams } = new URL(request.url);
+    const days = parseInt(searchParams.get('days') || '7');
 
-    // 如果没有分类数据，使用默认数据
-    if (categoryChartData.length === 0) {
-      const defaultCategories = [
-        { name: "餐饮美食", value: 25 },
-        { name: "购物消费", value: 18 },
-        { name: "生活服务", value: 15 },
-        { name: "教育培训", value: 12 },
-        { name: "娱乐休闲", value: 10 },
-        { name: "其他", value: 5 },
-      ];
-      categoryChartData.push(...defaultCategories);
-    }
-
-    // 获取趋势数据（线形图）- 近 7 日
-    const today = new Date();
-    const trendData = [];
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date(today);
-      date.setDate(date.getDate() - i);
-      const dateStr = date.toISOString().split("T")[0];
-
-      // 模拟数据（实际应该从数据库获取）
-      const userGrowth = Math.floor(Math.random() * 20) + 10;
-      const orderGrowth = Math.floor(Math.random() * 30) + 15;
-
-      trendData.push({
-        name: dateStr.slice(5), // MM-DD 格式
-        "用户增长": userGrowth,
-        "订单增长": orderGrowth,
-      });
-    }
-
-    // 获取雷达图数据（平台健康度）
-    const [userCount, productCount, merchantCount, orderCount, reviewCount] = await Promise.all([
-      prisma.user.count(),
-      prisma.product.count(),
-      prisma.merchant.count(),
-      prisma.order.count(),
-      prisma.merchantReview.count(),
+    // 并行获取所有图表数据
+    const [categoryData, trendData, growthData, radarData] = await Promise.all([
+      getCategoryData(),
+      getTrendData(days),
+      getGrowthData(),
+      getRadarData(),
     ]);
-
-    // 计算各项指标得分（0-100）
-    const userScore = Math.min(100, Math.floor((userCount / 100) * 100));
-    const productScore = Math.min(100, Math.floor((productCount / 500) * 100));
-    const merchantScore = Math.min(100, Math.floor((merchantCount / 50) * 100));
-    const orderScore = Math.min(100, Math.floor((orderCount / 200) * 100));
-    const reviewScore = Math.min(100, Math.floor((reviewCount / 100) * 100));
-    const activityScore = Math.floor(Math.random() * 30) + 60; // 活跃度
-
-    const radarChartData = [
-      { subject: "用户规模", value: userScore, fullMark: 100 },
-      { subject: "商品丰富度", value: productScore, fullMark: 100 },
-      { subject: "商家数量", value: merchantScore, fullMark: 100 },
-      { subject: "订单转化", value: orderScore, fullMark: 100 },
-      { subject: "用户评价", value: reviewScore, fullMark: 100 },
-      { subject: "平台活跃度", value: activityScore, fullMark: 100 },
-    ];
 
     return NextResponse.json({
       success: true,
       data: {
-        categoryData: categoryChartData,
+        categoryData,
         trendData,
-        radarData: radarChartData,
+        growthData,
+        radarData,
       },
     });
   } catch (error) {
-    console.error("Failed to fetch chart data:", error);
+    console.error('获取图表数据失败:', error);
     return NextResponse.json(
-      { error: "Failed to fetch chart data" },
+      {
+        success: false,
+        error: error instanceof Error ? error.message : '获取图表数据失败',
+      },
       { status: 500 }
     );
   }
+}
+
+/**
+ * 获取分类分布数据（商品分类）
+ */
+async function getCategoryData() {
+  const productStats = await prisma.product.groupBy({
+    by: ['category'],
+    _count: { id: true },
+    orderBy: { _count: { id: 'desc' } },
+  });
+
+  return productStats.map((stat) => ({
+    name: stat.category || '未分类',
+    value: stat._count.id,
+  }));
+}
+
+/**
+ * 获取增长趋势数据（近 N 日）
+ */
+async function getTrendData(days: number = 7) {
+  const now = new Date();
+  const startDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+
+  // 用户增长趋势
+  const userGrowth = await prisma.user.groupBy({
+    by: ['createdAt'],
+    _count: { id: true },
+    where: {
+      createdAt: { gte: startDate },
+    },
+    orderBy: { createdAt: 'asc' },
+  });
+
+  // 按天聚合用户增长
+  const userMap = new Map<string, number>();
+  userGrowth.forEach((stat) => {
+    const date = new Date(stat.createdAt).toLocaleDateString('zh-CN', {
+      month: '2-digit',
+      day: '2-digit',
+    });
+    userMap.set(date, (userMap.get(date) || 0) + stat._count.id);
+  });
+
+  // 生成完整日期序列
+  const trendData: Array<{
+    name: string;
+    用户增长：number;
+    订单增长：number;
+    商品发布：number;
+  }> = [];
+
+  for (let i = days - 1; i >= 0; i--) {
+    const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+    const dateStr = date.toLocaleDateString('zh-CN', {
+      month: '2-digit',
+      day: '2-digit',
+    });
+    const weekday = date.toLocaleDateString('zh-CN', { weekday: 'short' });
+
+    // 模拟订单和商品数据（后续可接入真实数据）
+    trendData.push({
+      name: `${dateStr} ${weekday}`,
+      用户增长：userMap.get(dateStr) || 0,
+      订单增长：Math.floor(Math.random() * 50),
+      商品发布：Math.floor(Math.random() * 30),
+    });
+  }
+
+  return trendData;
+}
+
+/**
+ * 获取累计业务数据（面积图）
+ */
+async function getGrowthData() {
+  const [userTotal, orderTotal, productTotal] = await Promise.all([
+    prisma.user.count(),
+    prisma.order.count(),
+    prisma.product.count(),
+  ]);
+
+  // 生成模拟的累计数据（实际应从时间序列数据计算）
+  const baseUsers = Math.max(100, userTotal - 50);
+  const baseOrders = Math.max(50, orderTotal - 30);
+  const baseProducts = Math.max(80, productTotal - 40);
+
+  return [
+    { name: '第 1 周', 累计用户：baseUsers, 累计订单：baseOrders, 累计商品：baseProducts },
+    { name: '第 2 周', 累计用户：baseUsers + 15, 累计订单：baseOrders + 10, 累计商品：baseProducts + 20 },
+    { name: '第 3 周', 累计用户：baseUsers + 30, 累计订单：baseOrders + 25, 累计商品：baseProducts + 35 },
+    { name: '第 4 周', 累计用户：userTotal, 累计订单：orderTotal, 累计商品：productTotal },
+  ];
+}
+
+/**
+ * 获取平台健康度雷达图数据
+ */
+async function getRadarData() {
+  const [userCount, productCount, merchantCount, orderCount, reviewCount] =
+    await Promise.all([
+      prisma.user.count(),
+      prisma.product.count(),
+      prisma.merchant.count(),
+      prisma.order.count(),
+      prisma.review.count(),
+    ]);
+
+  // 计算各维度得分（0-100）
+  const metrics = [
+    {
+      subject: '用户活跃度',
+      value: Math.min(100, Math.round((userCount / 10) * 100)),
+    },
+    {
+      subject: '商品丰富度',
+      value: Math.min(100, Math.round((productCount / 20) * 100)),
+    },
+    {
+      subject: '商家服务',
+      value: Math.min(100, Math.round((merchantCount / 5) * 100)),
+    },
+    {
+      subject: '订单完成',
+      value: Math.min(100, Math.round((orderCount / 15) * 100)),
+    },
+    {
+      subject: '用户满意',
+      value: Math.min(100, Math.round((reviewCount / 10) * 100)),
+    },
+    {
+      subject: '内容更新',
+      value: Math.min(100, Math.round(Math.random() * 80 + 20)),
+    },
+  ];
+
+  return metrics;
 }

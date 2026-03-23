@@ -1,4 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 山信二手平台
+
+山东信息职业技术学院二手交易平台与校园工具集成。
+
+## 功能特性
+
+- 🛒 二手商品交易
+- 📚 信息大全（学习资源、生活服务、就业信息）
+- 🗺️ 校园地图与教室导航
+- 📅 课表导入与管理
+- 💬 商家点评系统
+- 📰 校园新闻与公告
+- 👤 个人中心与订单管理
+
+## 环境配置
+
+### 必需的环境变量
+
+复制 `.env.example` 为 `.env.local` 并配置以下变量：
+
+```bash
+# 数据库 (本地开发使用 SQLite)
+DATABASE_URL="file:./dev.db"
+
+# NextAuth 认证
+AUTH_SECRET="生成方法：openssl rand -base64 32"
+NEXTAUTH_URL="http://localhost:3000"
+
+# 高德地图 API（校园地图功能）
+# 获取：https://lbs.amap.com/dev/key/app
+NEXT_PUBLIC_AMAP_KEY="你的 API Key"
+NEXT_PUBLIC_AMAP_SECURITY_CODE="你的安全密钥"
+```
+
+详细的高德地图配置指南请参考：[docs/AMAP_SETUP.md](docs/AMAP_SETUP.md)
 
 ## Getting Started
 

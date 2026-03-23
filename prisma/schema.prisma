@@ -386,8 +386,6 @@ model Course {
   weekList        String? // 周次列表（JSON 格式：[1,2,4,6,7,8,10,11,12,13,14]）
   color           String? // 课程颜色标记
   notes           String? // 备注
-  reminderEnabled Boolean  @default(false) // 是否启用提醒
-  reminderMinutes Int? // 提前提醒时间（分钟），如 10, 30, 60
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

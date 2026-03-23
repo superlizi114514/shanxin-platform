@@ -235,24 +235,39 @@ async function main() {
   console.log('\n开始 seeding 教室位置数据...')
 
   const kuwenClassrooms = [
-    // 教学楼 A
-    { buildingName: '教学楼 A', floor: 1, roomNumber: '101', roomName: '第一教室', capacity: 60, type: 'classroom' },
-    { buildingName: '教学楼 A', floor: 1, roomNumber: '102', roomName: '第二教室', capacity: 60, type: 'classroom' },
-    { buildingName: '教学楼 A', floor: 2, roomNumber: '201', roomName: '第三教室', capacity: 60, type: 'classroom' },
-    { buildingName: '教学楼 A', floor: 2, roomNumber: '202', roomName: '第四教室', capacity: 60, type: 'classroom' },
-    { buildingName: '教学楼 A', floor: 3, roomNumber: '301', roomName: '第五教室', capacity: 60, type: 'classroom' },
+    // 1 号教学楼 (k1)
+    { buildingName: '1 号教学楼', buildingCode: 'k1', floor: 1, roomNumber: '101', roomName: '第一教室', capacity: 60, type: 'classroom' },
+    { buildingName: '1 号教学楼', buildingCode: 'k1', floor: 1, roomNumber: '102', roomName: '第二教室', capacity: 60, type: 'classroom' },
+    { buildingName: '1 号教学楼', buildingCode: 'k1', floor: 2, roomNumber: '201', roomName: '第三教室', capacity: 60, type: 'classroom' },
+    { buildingName: '1 号教学楼', buildingCode: 'k1', floor: 2, roomNumber: '202', roomName: '第四教室', capacity: 60, type: 'classroom' },
+    { buildingName: '1 号教学楼', buildingCode: 'k1', floor: 3, roomNumber: '301', roomName: '第五教室', capacity: 60, type: 'classroom' },
 
-    // 教学楼 B
-    { buildingName: '教学楼 B', floor: 1, roomNumber: '101', roomName: '计算机房 1', capacity: 40, type: 'lab' },
-    { buildingName: '教学楼 B', floor: 1, roomNumber: '102', roomName: '计算机房 2', capacity: 40, type: 'lab' },
-    { buildingName: '教学楼 B', floor: 2, roomNumber: '201', roomName: '实验室 1', capacity: 30, type: 'lab' },
-    { buildingName: '教学楼 B', floor: 2, roomNumber: '202', roomName: '实验室 2', capacity: 30, type: 'lab' },
-    { buildingName: '教学楼 B', floor: 3, roomNumber: '301', roomName: '报告厅', capacity: 100, type: 'lecture hall' },
+    // 2 号教学楼 (k2)
+    { buildingName: '2 号教学楼', buildingCode: 'k2', floor: 1, roomNumber: '101', roomName: '计算机房 1', capacity: 40, type: 'lab' },
+    { buildingName: '2 号教学楼', buildingCode: 'k2', floor: 1, roomNumber: '102', roomName: '计算机房 2', capacity: 40, type: 'lab' },
+    { buildingName: '2 号教学楼', buildingCode: 'k2', floor: 2, roomNumber: '201', roomName: '实验室 1', capacity: 30, type: 'lab' },
+    { buildingName: '2 号教学楼', buildingCode: 'k2', floor: 2, roomNumber: '202', roomName: '实验室 2', capacity: 30, type: 'lab' },
+    { buildingName: '2 号教学楼', buildingCode: 'k2', floor: 3, roomNumber: '301', roomName: '报告厅', capacity: 100, type: 'lecture hall' },
+
+    // 3 号教学楼 (k3)
+    { buildingName: '3 号教学楼', buildingCode: 'k3', floor: 1, roomNumber: '101', roomName: '3 号教 101', capacity: 60, type: 'classroom' },
+    { buildingName: '3 号教学楼', buildingCode: 'k3', floor: 2, roomNumber: '201', roomName: '3 号教 201', capacity: 60, type: 'classroom' },
+    { buildingName: '3 号教学楼', buildingCode: 'k3', floor: 3, roomNumber: '301', roomName: '3 号教 301', capacity: 60, type: 'classroom' },
+
+    // 4 号教学楼 (k4)
+    { buildingName: '4 号教学楼', buildingCode: 'k4', floor: 1, roomNumber: '101', roomName: '4 号教 101', capacity: 60, type: 'classroom' },
+    { buildingName: '4 号教学楼', buildingCode: 'k4', floor: 2, roomNumber: '201', roomName: '4 号教 201', capacity: 60, type: 'classroom' },
+    { buildingName: '4 号教学楼', buildingCode: 'k4', floor: 3, roomNumber: '301', roomName: '4 号教 301', capacity: 60, type: 'classroom' },
+
+    // 5 号教学楼 (k5)
+    { buildingName: '5 号教学楼', buildingCode: 'k5', floor: 1, roomNumber: '101', roomName: '5 号教 101', capacity: 60, type: 'classroom' },
+    { buildingName: '5 号教学楼', buildingCode: 'k5', floor: 2, roomNumber: '201', roomName: '5 号教 201', capacity: 60, type: 'classroom' },
+    { buildingName: '5 号教学楼', buildingCode: 'k5', floor: 3, roomNumber: '301', roomName: '5 号教 301', capacity: 60, type: 'classroom' },
 
     // 实训楼
-    { buildingName: '实训楼', floor: 1, roomNumber: '101', roomName: '实训室 1', capacity: 30, type: 'lab' },
-    { buildingName: '实训楼', floor: 2, roomNumber: '201', roomName: '实训室 2', capacity: 30, type: 'lab' },
-    { buildingName: '实训楼', floor: 3, roomNumber: '301', roomName: '实训室 3', capacity: 30, type: 'lab' },
+    { buildingName: '实训楼', buildingCode: 'sx', floor: 1, roomNumber: '101', roomName: '实训室 1', capacity: 30, type: 'lab' },
+    { buildingName: '实训楼', buildingCode: 'sx', floor: 2, roomNumber: '201', roomName: '实训室 2', capacity: 30, type: 'lab' },
+    { buildingName: '实训楼', buildingCode: 'sx', floor: 3, roomNumber: '301', roomName: '实训室 3', capacity: 30, type: 'lab' },
   ]
 
   for (const classroom of kuwenClassrooms) {
