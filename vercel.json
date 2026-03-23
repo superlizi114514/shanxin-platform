@@ -1,7 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  // Trigger rebuild: 2026-03-23 fix register API
   "installCommand": "npm install",
   "buildCommand": "npm run build",
   "devCommand": "npm run dev",
