@@ -77,3 +77,38 @@ export async function sendPasswordResetEmail(email: string, resetToken: string) 
     return { success: false, error: "Failed to send email" };
   }
 }
+
+/**
+ * 发送邮箱验证码
+ */
+export async function sendEmailVerificationCode(email: string, code: string) {
+  try {
+    const { data, error } = await resend.emails.send({
+      from: "山信二手平台 <noreply@yourdomain.com>",
+      to: [email],
+      subject: "邮箱验证码 - 山信二手平台",
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h1 style="color: #2563eb;">邮箱验证码</h1>
+          <p>您请求的邮箱验证码如下：</p>
+          <div style="background-color: #f3f4f6; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px;">
+            <span style="font-size: 32px; font-weight: bold; color: #2563eb; letter-spacing: 8px;">${code}</span>
+          </div>
+          <p style="color: #6b7280; font-size: 14px;">此验证码将在 10 分钟后过期。</p>
+          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;" />
+          <p style="color: #9ca3af; font-size: 12px;">如果不是您本人操作，请忽略此邮件。</p>
+        </div>
+      `,
+    });
+
+    if (error) {
+      console.error("Failed to send verification code email:", error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, data };
+  } catch (err) {
+    console.error("Error sending email:", err);
+    return { success: false, error: "Failed to send email" };
+  }
+}

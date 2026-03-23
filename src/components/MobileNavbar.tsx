@@ -216,6 +216,15 @@ export default function MobileNavbar({ isAdmin }: MobileNavbarProps) {
                       </Link>
                     );
                   })}
+                  {/* 课表导出教程 */}
+                  <Link
+                    href="/guide/export-schedule"
+                    onClick={() => setIsOpen(false)}
+                    className="flex items-center space-x-3 px-4 py-3.5 rounded-xl text-gray-700 hover:bg-gray-100 transition-colors"
+                  >
+                    <BookIcon className="w-5 h-5 text-gray-500" />
+                    <span className="text-sm font-medium">课表导出教程</span>
+                  </Link>
                 </div>
 
                 {session && (

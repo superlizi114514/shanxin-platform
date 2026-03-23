@@ -437,6 +437,8 @@ model MerchantReview {
   userId     String?
   merchantId String
   helpful    Int      @default(0) // 有用数
+  status     String   @default("pending") // pending/approved/rejected
+  reportCount Int     @default(0) // 举报数
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 

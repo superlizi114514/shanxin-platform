@@ -93,7 +93,7 @@ export async function POST(
   }
 }
 
-// GET - 获取商家评价列表
+// GET - 获取商家评价列表（仅显示已审核通过的）
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -110,9 +110,15 @@ export async function GET(
 
     const skip = (page - 1) * limit;
 
+    // 只查询已审核通过的点评
+    const whereCondition: Record<string, unknown> = {
+      merchantId: id,
+      status: "approved", // 只显示已审核通过的
+    };
+
     const [reviews, total] = await Promise.all([
       prisma.merchantReview.findMany({
-        where: { merchantId: id },
+        where: whereCondition,
         skip,
         take: limit,
         include: {
@@ -131,7 +137,7 @@ export async function GET(
         orderBy: { createdAt: "desc" },
       }),
       prisma.merchantReview.count({
-        where: { merchantId: id },
+        where: whereCondition,
       }),
     ]);
 

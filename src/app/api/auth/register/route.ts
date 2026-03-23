@@ -7,6 +7,9 @@ import { registerSchema } from "@/lib/validators/auth";
 import { z } from "zod";
 import { checkRateLimit } from "@/middleware/rate-limit";
 
+// Force Node.js runtime for Prisma and bcrypt compatibility
+export const runtime = "nodejs";
+
 export async function POST(request: NextRequest) {
   try {
     // 检查速率限制
@@ -162,7 +165,5 @@ export async function POST(request: NextRequest) {
       { error: "Something went wrong" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }

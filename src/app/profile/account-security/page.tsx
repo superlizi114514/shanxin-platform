@@ -34,6 +34,15 @@ export default function AccountSecurityPage() {
   const [bindingPhone, setBindingPhone] = useState(false);
   const [countdown, setCountdown] = useState(0);
 
+  // 邮箱绑定表单
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [bindEmail, setBindEmail] = useState("");
+  const [emailCode, setEmailCode] = useState("");
+  const [sendingEmailCode, setSendingEmailCode] = useState(false);
+  const [bindingEmail, setBindingEmail] = useState(false);
+  const [emailCountdown, setEmailCountdown] = useState(0);
+  const [verifyToken, setVerifyToken] = useState<string | null>(null);
+
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login");

@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import "./globals.css";
 import AuthProvider from "@/components/AuthProvider";
 import MonitoringProvider from "@/components/MonitoringProvider";
+import { ReactQueryProvider } from "@/components/ReactQueryProvider";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Toaster } from "sonner";
+import { reportWebVitals } from "@/lib/web-vitals";
 
 // 使用系统字体栈替代 Google Fonts，优化国内访问速度
 // 系统字体栈无需网络请求，加载更快，避免 Google Fonts 被墙问题
@@ -90,12 +92,12 @@ export default function RootLayout({
       <head>
         <style dangerouslySetInnerHTML={{ __html: systemFonts }} />
       </head>
-      <body
-        className="antialiased"
-      >
-        <MonitoringProvider>
-          <AuthProvider>{children}</AuthProvider>
-        </MonitoringProvider>
+      <body className="antialiased transition-colors duration-200">
+        <ReactQueryProvider>
+          <MonitoringProvider>
+            <AuthProvider>{children}</AuthProvider>
+          </MonitoringProvider>
+        </ReactQueryProvider>
         <Analytics />
         <SpeedInsights />
         <Toaster position="top-right" richColors />
